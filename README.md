@@ -151,6 +151,18 @@ If installing macOS Sonoma (14) or macOS Sequoia (15):
 
 ---
 
+## 📖 Troubleshooting & Post-Install Tweaks
+
+For troubleshooting specific hardware components and optimizing performance, see our [**Troubleshooting & Optimization Guide (TROUBLESHOOTING.md)**](TROUBLESHOOTING.md):
+* **iCloud / iMessage / FaceTime Fixes**
+* **Trackpad Responsiveness (Polling vs GPIO Pinning)**
+* **Audio Headphone Jack Auto-Switching**
+* **Sleep / Wake & Battery Drain Prevention**
+* **Custom USB Port Mapping**
+* **Discrete GPU Power Down Verification**
+
+---
+
 ## 🤝 Credits
 
 * [Apple](https://www.apple.com) for macOS.

@@ -1,0 +1,45 @@
+name: Package and Release EFI
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Package OpenCore EFI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Clean and Package EFI
+        run: |
+          # Remove any unwanted metadata or temporary files
+          find EFI -name ".DS_Store" -delete || true
+          find EFI -name "._*" -delete || true
+          
+          # Create zip archive preserving EFI root structure
+          zip -r "OpenCore-GL503GE-${{ github.ref_name || 'latest' }}.zip" EFI -x "*.DS_Store" "*._*"
+          
+          # Generate SHA256 checksum
+          sha256sum "OpenCore-GL503GE-${{ github.ref_name || 'latest' }}.zip" > "OpenCore-GL503GE-${{ github.ref_name || 'latest' }}.zip.sha256"
+          
+          echo "Package created successfully:"
+          ls -la OpenCore-GL503GE-*.zip*
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            OpenCore-GL503GE-*.zip
+            OpenCore-GL503GE-*.zip.sha256
+          draft: false
+          prerelease: false
+          generate_release_notes: true
