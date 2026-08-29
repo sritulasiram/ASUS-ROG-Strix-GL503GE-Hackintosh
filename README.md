@@ -22,7 +22,7 @@ OpenCore EFI configuration for running macOS on the **ASUS ROG Strix GL503GE** l
 | **Storage** | Samsung 980 500GB NVMe SSD | ✅ Working | Power management managed via `NVMeFix.kext` |
 | **Audio** | Realtek ALC (ALC295/294) | ✅ Working | `layout-id: 14` (`alcid=14`), Speakers & 3.5mm jack |
 | **Ethernet** | Realtek RTL8111 Gigabit Ethernet | ✅ Working | Handled by `RealtekRTL8111.kext` |
-| **Wi-Fi** | Intel AX210 / Intel Wireless | ✅ Working | Working via `AirportItlwm` & OCLP modern wireless patch |
+| **Wi-Fi** | Intel AX210 / Intel Wireless | ✅ Working | Working via **OCLP-Mod** (OpenCore Legacy Patcher Mod) |
 | **Bluetooth** | Intel Wireless Bluetooth | ✅ Working | `IntelBluetoothFirmware` + `IntelBTPatcher` + `BlueToolFixup` |
 | **Trackpad** | ASUS I2C Multi-Touch Trackpad | ✅ Working | `VoodooI2C` + `VoodooI2CHID` with `-vi2c-force-polling` |
 | **Keyboard** | Built-in Backlit Keyboard | ✅ Working | Function & Brightness keys via `BrightnessKeys.kext` |
@@ -142,12 +142,12 @@ OpenCore EFI configuration for running macOS on the **ASUS ROG Strix GL503GE** l
 3. Copy the entire `EFI` directory from this repository to the root of the EFI partition.
 4. Boot from the USB, open BIOS to ensure the settings above are set, and proceed with installation.
 
-### 3. Post-Installation (Wi-Fi Root Patching)
-If installing macOS Sonoma (14) or macOS Sequoia (15):
-1. Complete the macOS setup assistant.
-2. Download and launch [OpenCore Legacy Patcher (OCLP)](https://github.com/dortania/OpenCore-Legacy-Patcher).
-3. Select **Post-Install Root Patch** and install the **Networking: Modern Wireless** patches.
-4. Reboot the system to enable full Wi-Fi support.
+### 3. Post-Installation (Intel Wi-Fi via OCLP-Mod)
+For macOS Sonoma (14) and macOS Sequoia (15):
+1. Complete the macOS initial setup.
+2. Download and launch **[OCLP-Mod (OpenCore-Legacy-Patcher Mod)](https://github.com/lzhoang2801/OpenCore-Legacy-Patcher/releases)** (the community mod specifically tailored for Intel Wi-Fi root patching with `IOSkywalkFamily` / `AMFIPass`).
+3. Click **Post-Install Root Patch** and install the **Networking: Modern Wireless** patches.
+4. Reboot the laptop to activate native Intel Wi-Fi and control center networking.
 
 ---
 
