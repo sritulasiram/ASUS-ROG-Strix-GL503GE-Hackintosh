@@ -44,16 +44,18 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
 ## 4. 🌐 Wi-Fi & Bluetooth (Intel AX210 / 9560)
 
 ### Issue: Wi-Fi toggle is greyed out on macOS Sonoma (14) or Sequoia (15).
-* **Cause:** macOS 14+ removed legacy Wi-Fi drivers (`IO80211Family`).
-* **Fix (OCLP Root Patching):**
+* **Cause:** macOS 14+ removed the legacy `IO80211Family` Wi-Fi stack. Official OpenCore Legacy Patcher targets Broadcom cards, whereas **Intel Wi-Fi** cards require **[OCLP-Mod (OpenCore-Legacy-Patcher Mod)](https://github.com/lzhoang2801/OpenCore-Legacy-Patcher/releases)**.
+* **Fix (OCLP-Mod Root Patching):**
   1. Ensure the following kexts are enabled in `config.plist`:
      * `IOSkywalkFamily.kext`
-     * `IO80211FamilyLegacy.kext`
+     * `IO80211FamilyLegacy.kext` (with `AirPortBrcmNIC.kext` plugin)
      * `AMFIPass.kext`
+     * `AirportItlwm.kext`
   2. Verify boot-args contains `-amfipassbeta`.
-  3. Verify `csr-active-config` is set to `03080000` (or `AwoAAA==` in base64).
-  4. Boot macOS, download [OpenCore Legacy Patcher (OCLP)](https://github.com/dortania/OpenCore-Legacy-Patcher), and run **Post-Install Root Patch**.
-  5. Reboot after patching completes.
+  3. Verify `csr-active-config` is set to `03080000` (`<data>AwoAAA==</data>`).
+  4. Boot into macOS, download **[OCLP-Mod](https://github.com/lzhoang2801/OpenCore-Legacy-Patcher/releases)**, and click **Post-Install Root Patch**.
+  5. Select **Networking: Modern Wireless** to patch the Intel Wi-Fi drivers into the system snapshot.
+  6. Reboot when prompted.
 
 ### Issue: Bluetooth fails to turn on or toggle.
 * The EFI includes `IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, and `BlueToolFixup.kext`.
