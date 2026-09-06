@@ -10,7 +10,18 @@ An optimized, production-ready OpenCore EFI configuration for running macOS (**S
 
 Built following the [Dortania OpenCore Install Guide](https://dortania.github.io/OpenCore-Install-Guide/), assisted by [OpenCore Simplify](https://github.com/lzhoang2801/OC-Simplify), and powered by [Acidanthera](https://github.com/acidanthera) kexts and drivers.
 
+<p align="center">
+  <img src="docs/images/about_this_mac.png" alt="macOS running on ASUS ROG Strix GL503GE" width="820"/>
+  <br/>
+  <i>macOS Tahoe running on ASUS ROG Strix GL503GE (Intel Core i7-8750H, Intel UHD Graphics 630, 16 GB DDR4)</i>
+</p>
+
 > ⚠️ **Disclaimer:** Hackintoshing violates Apple's macOS EULA. This repository is provided solely for educational and personal research purposes. Use at your own risk — the author takes no responsibility for any data loss, hardware damage, or warranty voidance.
+
+---
+
+### 📌 Quick Navigation
+[💻 Hardware Status](#-hardware-specifications--status) • [📂 EFI Structure](#-repository-structure) • [⚙️ OpenCore Config](#-opencore-configuration) • [🔧 BIOS Settings](#-bios-configuration) • [🚀 Installation](#-installation--setup-guide) • [🌐 Apple Services](#-apple-ecosystem--continuity) • [🔌 USB Port Map](#-physical-usb-port-mapping) • [📖 Troubleshooting](#-troubleshooting--optimizations)
 
 ---
 
@@ -40,12 +51,44 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
 
 ---
 
+## 🌐 Apple Ecosystem & Continuity
+
+| Feature | Status | Notes |
+| :--- | :---: | :--- |
+| **Apple ID & iCloud** | ✅ Working | Full iCloud Drive, Keychain sync, and Find My support (requires valid SMBIOS) |
+| **App Store & iTunes** | ✅ Working | Native access with genuine Apple ID |
+| **iMessage & FaceTime** | ✅ Working | Fully functional when `ROM` matches the onboard Ethernet MAC address |
+| **AirDrop & AirPlay Receiver** | ⚠️ Limited | Intel Wi-Fi cards do not support Apple's proprietary Wi-Fi Direct protocols |
+| **Universal Control & Handoff** | ⚠️ Partial | Clipboard sharing works intermittently; full Continuity requires Broadcom hardware |
+| **Continuity Camera** | ✅ Working | Wired USB connection supported |
+| **Sidecar** | ❌ Unsupported | Requires native Apple Silicon or specific T2 hardware encoder pathways |
+
+---
+
+## 🔌 Physical USB Port Mapping
+
+All USB ports are custom-mapped within macOS's 15-port per controller limit using `USBToolBox.kext` and `UTBDefault.kext`:
+
+| Port | Chassis Location | Connector Type | Speed | Connected Device / Function |
+| :--- | :--- | :--- | :--- | :--- |
+| **SS01 / HS01** | Left Side (Rear) | USB 3.0 Type-A | USB 3.0 (5 Gbps) | External storage, flash drives, peripherals |
+| **SS02 / HS02** | Left Side (Middle) | USB 3.0 Type-A | USB 3.0 (5 Gbps) | External storage, mice, keyboards |
+| **SS03 / HS03** | Left Side (Front) | USB 3.0 Type-A | USB 3.0 (5 Gbps) | High-speed data devices |
+| **SS04 / HS04** | Left Side (Center) | USB-C 3.1 Gen 1 | Type-C (5 Gbps) | Type-C hubs, flash drives, external SSDs |
+| **HS05** | Right Side | USB 2.0 Type-A | USB 2.0 (480 Mbps) | Mouse dongles, flash drives |
+| **HS07** | Internal Header | Internal (Type 255) | USB 2.0 (480 Mbps) | ASUS HD USB Webcam |
+| **HS14** | Internal Header | Internal (Type 255) | USB 2.0 (480 Mbps) | Intel Bluetooth Controller (9560 / AX210) |
+
+---
+
 ## 📂 Repository Structure
 
 ```text
 .
 ├── .github/
 │   └── workflows/              # Automated GitHub Actions build & release workflows
+├── docs/
+│   └── images/                 # Desktop screenshot and documentation assets
 ├── EFI/
 │   ├── BOOT/
 │   │   └── BOOTx64.efi         # OpenCore initial UEFI bootloader
