@@ -1,37 +1,68 @@
 # ASUS ROG Strix GL503GE Hackintosh
 
 [![OpenCore](https://img.shields.io/badge/OpenCore-1.0.7-blue.svg?style=flat-square&logo=apple)](https://github.com/acidanthera/OpenCorePkg)
-[![macOS Support](https://img.shields.io/badge/macOS-Sonoma%20%7C%20Sequoia-success.svg?style=flat-square&logo=apple)](https://www.apple.com/macos/)
+[![macOS Support](https://img.shields.io/badge/macOS-Sonoma%20%7C%20Sequoia%20%7C%20Tahoe-success.svg?style=flat-square&logo=apple)](https://www.apple.com/macos/)
 [![Model](https://img.shields.io/badge/ASUS-ROG%20Strix%20GL503GE-red.svg?style=flat-square&logo=asus)](https://rog.asus.com/)
+[![Theme](https://img.shields.io/badge/OpenCanopy-Blackosx%20BsxM1-9cf.svg?style=flat-square)](https://github.com/blackosx/OpenCanopy-Icons)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-OpenCore EFI configuration for running macOS on the **ASUS ROG Strix GL503GE** laptop. Built in accordance with the [Dortania OpenCore Install Guide](https://dortania.github.io/OpenCore-Install-Guide/), assisted by [OpenCore Simplify](https://github.com/lzhoang2801/OC-Simplify), and powered by [Acidanthera](https://github.com/acidanthera) kexts and drivers.
+An optimized, production-ready OpenCore EFI configuration for running macOS (**Sonoma 14.x**, **Sequoia 15.x**, and **Tahoe 16.x**) on the **ASUS ROG Strix GL503GE** gaming laptop.
 
-> ⚠️ **Disclaimer:** Hackintoshing violates Apple's macOS EULA. This repository is for educational and personal research purposes only. Use at your own risk — the author takes no responsibility for any data loss, hardware damage, or warranty voidance.
+Built following the [Dortania OpenCore Install Guide](https://dortania.github.io/OpenCore-Install-Guide/), assisted by [OpenCore Simplify](https://github.com/lzhoang2801/OC-Simplify), and powered by [Acidanthera](https://github.com/acidanthera) kexts and drivers.
+
+> ⚠️ **Disclaimer:** Hackintoshing violates Apple's macOS EULA. This repository is provided solely for educational and personal research purposes. Use at your own risk — the author takes no responsibility for any data loss, hardware damage, or warranty voidance.
 
 ---
 
 ## 💻 Hardware Specifications & Status
 
-| Component | Hardware Details | Status | Notes |
+| Component | Hardware Details | Status | Notes / Drivers |
 | :--- | :--- | :---: | :--- |
-| **CPU** | Intel Core i7-8750H (Coffee Lake-H, 6c/12t) | ✅ Working | Native Power Management (`SSDT-PLUG`) |
+| **CPU** | Intel Core i7-8750H (Coffee Lake-H, 6c/12t) | ✅ Working | Native Power Management (`SSDT-PLUG`, `X86PlatformPlugin`) |
 | **iGPU** | Intel UHD Graphics 630 | ✅ Working | Full QE/CI acceleration, HDMI 2.0 patched, `-igfxblt` |
-| **dGPU** | NVIDIA GeForce GTX 1050 Ti (Mobile) | ❌ Disabled | Disabled via `SSDT-Disable_GPU_PEG0.aml` (no macOS driver support) |
-| **RAM** | 16 GB DDR4 2666 MHz | ✅ Working | Dual-channel detected |
-| **Storage** | Samsung 980 500GB NVMe SSD | ✅ Working | Power management managed via `NVMeFix.kext` |
-| **Audio** | Realtek ALC (ALC295/294) | ✅ Working | `layout-id: 14` (`alcid=14`), Speakers & 3.5mm jack |
+| **dGPU** | NVIDIA GeForce GTX 1050 Ti (Mobile) | ❌ Disabled | Disabled via `SSDT-Disable_GPU_PEG0.aml` to save power and prevent heat |
+| **RAM** | 16 GB DDR4 2666 MHz | ✅ Working | Dual-channel detected & operational |
+| **Storage** | Samsung 980 500GB NVMe SSD | ✅ Working | Native APFS trim, power management via `NVMeFix.kext` |
+| **Audio** | Realtek ALC (ALC295/294) | ✅ Working | `layout-id: 14` (`alcid=14`), speakers, 3.5mm combo jack, HDMI audio |
+| **Boot Chime** | UEFI Audio Output | ✅ Working | Native startup chime via `AudioDxe.efi` (`OCEFIAudio_VoiceOver_Boot.wav`) |
 | **Ethernet** | Realtek RTL8111 Gigabit Ethernet | ✅ Working | Handled by `RealtekRTL8111.kext` |
-| **Wi-Fi** | Intel AX210 / Intel Wireless | ✅ Working | Working via **OCLP-Mod** (OpenCore Legacy Patcher Mod) |
+| **Wi-Fi** | Intel AX210 / Wireless-AC 9560 | ✅ Working | Supported via **OCLP-Mod** root patching (`IOSkywalkFamily` + `AMFIPass`) |
 | **Bluetooth** | Intel Wireless Bluetooth | ✅ Working | `IntelBluetoothFirmware` + `IntelBTPatcher` + `BlueToolFixup` |
-| **Trackpad** | ASUS I2C Multi-Touch Trackpad | ✅ Working | `VoodooI2C` + `VoodooI2CHID` with `-vi2c-force-polling` |
-| **Keyboard** | Built-in Backlit Keyboard | ✅ Working | Function & Brightness keys via `BrightnessKeys.kext` |
-| **Keyboard Backlight** | Aura RGB Lighting | 🔄 Testing | Work in progress |
-| **Webcam** | Built-in USB HD Camera | ✅ Working | Native UVC support |
-| **Card Reader** | Realtek RTS5229 / PCIe SD Card Reader | 🔄 Testing | `Sinetek-rtsx.kext` included (untested) |
-| **Battery Status** | ASUS Smart Battery | ✅ Working | Percentage & health reporting via `SMCBatteryManager.kext` |
-| **HDMI Output** | HDMI 2.0 Port | ✅ Working | Video & Audio output |
-| **Sleep / Wake** | S3 Sleep State | 🔄 Testing | Testing power assertions and sleep stability |
+| **Trackpad** | ASUS I2C Multi-Touch Trackpad | ✅ Working | Smooth multi-touch gestures via `VoodooI2C` + `VoodooI2CHID` (`-vi2c-force-polling`) |
+| **Keyboard** | Built-in Backlit Keyboard | ✅ Working | Function, volume & brightness keys via `BrightnessKeys.kext` |
+| **RGB Lighting** | Aura 4-Zone RGB Lighting | ✅ Supported | Controlled via [ROG Gaming Center for macOS](https://github.com/sritulasiram/rog-gaming-center-hackintosh) |
+| **Webcam** | Built-in USB HD Camera | ✅ Working | Native macOS UVC support |
+| **Card Reader** | Realtek RTS5229 PCIe SD Card Reader | 🔄 Testing | Driver included (`Sinetek-rtsx.kext`) |
+| **Battery Status** | ASUS Smart Battery | ✅ Working | Real-time percentage & AC health via `SMCBatteryManager.kext` |
+| **Display** | 15.6" Full HD 120Hz IPS Display | ✅ Working | Native brightness slider, 120Hz refresh rate |
+| **HDMI Output** | HDMI 2.0 Port | ✅ Working | 4K video & audio output |
+| **Sleep / Wake** | S3 Sleep State | ✅ Working | Sleep, lid close, and wake operational |
+
+---
+
+## 📂 Repository Structure
+
+```text
+.
+├── .github/
+│   └── workflows/              # Automated GitHub Actions build & release workflows
+├── EFI/
+│   ├── BOOT/
+│   │   └── BOOTx64.efi         # OpenCore initial UEFI bootloader
+│   └── OC/
+│       ├── ACPI/               # 11 optimized DSDT/SSDT patches
+│       ├── Drivers/            # UEFI drivers (AudioDxe, OpenCanopy, OpenRuntime, etc.)
+│       ├── Kexts/              # 26 kernel extensions for hardware enablement
+│       ├── Resources/          # Audio chimes, fonts, OpenCanopy themes & labels
+│       │   ├── Audio/          # Startup chime WAV files
+│       │   ├── Font/           # Boot picker typography
+│       │   ├── Image/          # Icons (Acidanthera & Blackosx BsxM1 modern theme)
+│       │   └── Label/          # Entry label bitmaps
+│       └── config.plist        # Complete OpenCore configuration (sanitized)
+├── LICENSE                     # MIT License
+├── README.md                   # This documentation
+└── TROUBLESHOOTING.md          # In-depth post-install and troubleshooting guide
+```
 
 ---
 
@@ -39,75 +70,93 @@ OpenCore EFI configuration for running macOS on the **ASUS ROG Strix GL503GE** l
 
 * **OpenCore Version:** `1.0.7`
 * **Target SMBIOS:** `MacBookPro16,4`
-* **Active Boot Arguments:**
+* **Boot Arguments:**
   ```text
   debug=0x100 alcid=14 keepsyms=1 -amfipassbeta -igfxblt -vi2c-force-polling
   ```
+* **Boot Argument Breakdown:**
+  * `alcid=14` — Selects AppleALC layout-id 14 for the Realtek ALC295 codec.
+  * `-igfxblt` — Fixes display backlight level initialization at boot.
+  * `-vi2c-force-polling` — Forces polling mode on VoodooI2C for reliable touchpad input.
+  * `-amfipassbeta` — Allows AMFIPass to work on modern beta/new macOS versions.
+  * `debug=0x100 keepsyms=1` — Retains kernel symbols and prevents auto-reboot on kernel panic.
+
+### 🎨 Graphical Boot Picker (OpenCanopy)
+* **Mode:** `External`
+* **Theme:** `Blackosx\BsxM1` (Modern Apple-style dark icons)
+* **Attributes:** `144` (Enables high-resolution icons and direct label rendering)
+
+### 🔊 UEFI Boot Chime (AudioDxe)
+* **Driver:** `AudioDxe.efi`
+* **Audio Device:** `PciRoot(0x0)/Pci(0x1f,0x3)`
+* **Audio Codec:** `0`
+* **Setup Delay:** `500 ms`
+* **Audio File:** `OCEFIAudio_VoiceOver_Boot.wav` (Native Mac startup chime)
 
 ### 🧩 ACPI Patches (SSDTs)
 * `SSDT-ALSD.aml` — Ambient Light Sensor dummy device.
-* `SSDT-Disable_GPU_PEG0.aml` — Powers down the discrete NVIDIA GPU to save battery and reduce heat.
-* `SSDT-EC.aml` — Embedded Controller fix for macOS.
-* `SSDT-GPI0.aml` — GPIO controller enablement for I2C touchpad interrupts.
-* `SSDT-MCHC.aml` — Memory Controller Hub fix.
-* `SSDT-PLUG.aml` — Native CPU power management (`X86PlatformPlugin`).
-* `SSDT-PMC.aml` — Native NVRAM support for 300-series chipsets.
-* `SSDT-PNLF.aml` — Display backlight control for Coffee Lake mobile displays.
-* `SSDT-SBUS.aml` — Fixes SMBus support.
-* `SSDT-USBX.aml` — USB power properties injection.
-* `SSDT-XOSI.aml` — Routes OS calls through ACPI to simulate Windows environment.
+* `SSDT-Disable_GPU_PEG0.aml` — Shuts down the discrete NVIDIA GTX 1050 Ti GPU.
+* `SSDT-EC.aml` — Embedded Controller compatibility patch for macOS.
+* `SSDT-GPI0.aml` — Enables GPIO controller for touchpad hardware interrupt routing.
+* `SSDT-MCHC.aml` — Fixes Memory Controller Hub recognition.
+* `SSDT-PLUG.aml` — Enables native CPU power management (`X86PlatformPlugin`).
+* `SSDT-PMC.aml` — Provides native NVRAM support for Intel 300-series chipsets.
+* `SSDT-PNLF.aml` — Adds Coffee Lake backlight control device.
+* `SSDT-SBUS.aml` — Fixes System Management Bus (SMBus) recognition.
+* `SSDT-USBX.aml` — Injects proper USB power properties (USB sleep/wake current).
+* `SSDT-XOSI.aml` — Emulates Windows 10/11 environment for ASUS ACPI tables.
 
 ### 📦 Kernel Extensions (Kexts)
 
-<details>
-<summary><b>Click to expand full kext list (26 kexts)</b></summary>
+<details open>
+<summary><b>Full Kext List (26 kexts)</b></summary>
 
 | Kext | Purpose |
 | :--- | :--- |
-| `Lilu.kext` | Arbitrary kext and process patching engine (Requirement) |
-| `VirtualSMC.kext` | Advanced Apple SMC emulator |
-| `SMCProcessor.kext` | CPU temperature monitoring sensor |
-| `SMCSuperIO.kext` | Fan speed and hardware sensor monitoring |
-| `SMCBatteryManager.kext` | Battery status and percentage monitoring |
-| `SMCLightSensor.kext` | Ambient light sensor emulator |
-| `WhateverGreen.kext` | Graphics driver patches for Intel UHD 630 |
-| `AppleALC.kext` | Native HD audio support |
-| `BrightnessKeys.kext` | Dynamic brightness hotkey control |
+| `Lilu.kext` | Core kext patcher & hooking engine (Essential) |
+| `VirtualSMC.kext` | Advanced Apple SMC chip emulator |
+| `SMCProcessor.kext` | Real-time CPU temperature and core monitoring |
+| `SMCSuperIO.kext` | Fan speed and hardware sensor telemetry |
+| `SMCBatteryManager.kext` | ASUS laptop battery percentage and charging state |
+| `SMCLightSensor.kext` | Ambient light sensor emulation |
+| `WhateverGreen.kext` | Intel UHD 630 framebuffer patching and HDMI 2.0 enablement |
+| `AppleALC.kext` | Realtek ALC295 native audio patcher |
+| `BrightnessKeys.kext` | Maps ASUS keyboard brightness function keys |
 | `RealtekRTL8111.kext` | Realtek Gigabit Ethernet driver |
 | `AirportItlwm.kext` | Intel Wi-Fi driver |
 | `IOSkywalkFamily.kext` | Modern wireless networking compatibility framework |
 | `IO80211FamilyLegacy.kext` | Legacy wireless support for modern macOS |
 | `AMFIPass.kext` | AppleMobileFileIntegrity compatibility shim |
-| `IntelBluetoothFirmware.kext` | Firmware uploader for Intel Bluetooth modules |
-| `IntelBTPatcher.kext` | Intel Bluetooth subsystem patches |
+| `IntelBluetoothFirmware.kext` | Firmware loader for Intel Bluetooth |
+| `IntelBTPatcher.kext` | Intel Bluetooth subsystem kernel patches |
 | `BlueToolFixup.kext` | macOS Bluetooth stack compatibility wrapper |
 | `VoodooI2C.kext` | Intel I2C controller driver |
-| `VoodooI2CHID.kext` | I2C HID precision trackpad driver |
-| `USBToolBox.kext` | USB mapping driver |
-| `UTBDefault.kext` | USB default port definition |
-| `XHCI-unsupported.kext` | USB 3.0 XHCI controller injector |
-| `NVMeFix.kext` | NVMe power management and stability fixes |
+| `VoodooI2CHID.kext` | Precision multi-touch trackpad gestures |
+| `USBToolBox.kext` | Custom USB port management engine |
+| `UTBDefault.kext` | ASUS GL503GE USB port mapping definitions |
+| `XHCI-unsupported.kext` | Intel 300-series XHCI USB controller injector |
+| `NVMeFix.kext` | NVMe power management, APST tables, and stability |
 | `Sinetek-rtsx.kext` | Realtek PCIe SD card reader driver |
-| `RestrictEvents.kext` | System event suppressor and memory UI patcher |
-| `ForgedInvariant.kext` | TSC invariant timing fix for Coffee Lake |
+| `RestrictEvents.kext` | System event suppression & CPU branding patcher |
+| `ForgedInvariant.kext` | Fixes TSC invariant timing on Coffee Lake |
 
 </details>
 
 ### 🔌 UEFI Drivers
-* `AudioDxe.efi` — OpenCore audio support and boot chime driver.
-* `OpenRuntime.efi` — Mandatory runtime driver for OpenCore memory management.
+* `AudioDxe.efi` — UEFI audio protocol driver for boot chime sound.
 * `OpenCanopy.efi` — High-resolution graphical boot menu interface.
-* `HfsPlus.efi` — HFS+ file system driver for macOS installers and recovery partitions.
-* `ResetNvramEntry.efi` — NVRAM reset helper in the OpenCore boot picker.
+* `OpenRuntime.efi` — Mandatory runtime memory management driver for OpenCore.
+* `HfsPlus.efi` — High-performance HFS+ file system driver.
 * `apfs_aligned.efi` — APFS file system driver.
+* `ResetNvramEntry.efi` — Adds convenient NVRAM reset option to boot menu.
 
 ---
 
 ## 🔧 BIOS Configuration
 
-> **BIOS Version:** ASUS 319 (or latest available)
+> **Tested BIOS Version:** ASUS GL503GE BIOS 319 (or latest official)
 
-### Recommended BIOS Settings:
+### Recommended Settings:
 * **Disable:**
   * ❌ Fast Boot
   * ❌ Secure Boot
@@ -126,50 +175,58 @@ OpenCore EFI configuration for running macOS on the **ASUS ROG Strix GL503GE** l
 
 ### 1. Generate Your Own SMBIOS (Required!)
 > [!IMPORTANT]
-> The `config.plist` in this repository has its serial numbers sanitized with placeholders (`CHANGEME`). **You must generate your own unique SMBIOS values before booting:**
+> The `config.plist` in this repository has placeholder values (`CHANGEME`) for serial numbers to prevent conflicts. **You must generate your own unique SMBIOS values before booting:**
 
 1. Download and run [GenSMBIOS](https://github.com/corpnewt/GenSMBIOS).
-2. Select option `1` to fetch MacSerial, then option `3` to generate SMBIOS for `MacBookPro16,4`.
+2. Select option `1` to download MacSerial, then option `3` to generate SMBIOS for `MacBookPro16,4`.
 3. Open `EFI/OC/config.plist` with [ProperTree](https://github.com/corpnewt/ProperTree) or [OCAuxiliaryTools](https://github.com/ic005k/OCAuxiliaryTools).
-4. Navigate to `PlatformInfo > Generic` and paste your generated values:
+4. Navigate to `PlatformInfo > Generic` and fill in:
    * `SystemSerialNumber`
    * `MLB` (Board Serial Number)
    * `SystemUUID`
-   * `ROM` (use your network MAC address or a generated 12-digit hex string)
+   * `ROM` (Use your laptop Ethernet MAC address without colons, e.g. `112233445566`)
 
 ### 2. Prepare USB Installer
-1. Create a bootable macOS USB installer using standard Apple terminal tools.
-2. Mount the EFI partition of the USB drive (e.g. using `MountEFI` or `diskutil`).
-3. Copy the entire `EFI` directory from this repository to the root of the EFI partition.
-4. Boot from the USB, open BIOS to ensure the settings above are set, and proceed with installation.
+1. Create a bootable macOS USB installer using standard Apple tools:
+   ```bash
+   sudo /Applications/Install\ macOS\ Sequoia.app/Contents/Resources/createinstallmedia --volume /Volumes/MyUSB
+   ```
+2. Mount the EFI partition of your USB drive (using `MountEFI` or `diskutil mount diskXs1`).
+3. Copy the entire `EFI` folder from this repository to the root of the EFI partition.
+4. Reboot, enter BIOS (hold `F2` at startup), verify BIOS settings above, and boot from USB (`F8` or `Esc`).
 
-### 3. Post-Installation (Intel Wi-Fi via OCLP-Mod)
-For macOS Sonoma (14) and macOS Sequoia (15):
-1. Complete the macOS initial setup.
-2. Download and launch **[OCLP-Mod (OpenCore-Legacy-Patcher Mod)](https://github.com/lzhoang2801/OpenCore-Legacy-Patcher/releases)** (the community mod specifically tailored for Intel Wi-Fi root patching with `IOSkywalkFamily` / `AMFIPass`).
-3. Click **Post-Install Root Patch** and install the **Networking: Modern Wireless** patches.
-4. Reboot the laptop to activate native Intel Wi-Fi and control center networking.
+### 3. Post-Installation: Intel Wi-Fi via OCLP-Mod
+On macOS Sonoma (14) and Sequoia (15):
+1. Complete the macOS setup assistant.
+2. Download **[OCLP-Mod (OpenCore-Legacy-Patcher Mod)](https://github.com/lzhoang2801/OpenCore-Legacy-Patcher/releases)**.
+3. Launch OCLP-Mod and click **Post-Install Root Patch**.
+4. Install the **Networking: Modern Wireless** patch set.
+5. Reboot your laptop. Native Wi-Fi management and Control Center networking will now be active.
 
----
-
-## 📖 Troubleshooting & Post-Install Tweaks
-
-For troubleshooting specific hardware components and optimizing performance, see our [**Troubleshooting & Optimization Guide (TROUBLESHOOTING.md)**](TROUBLESHOOTING.md):
-* **iCloud / iMessage / FaceTime Fixes**
-* **Trackpad Responsiveness (Polling vs GPIO Pinning)**
-* **Audio Headphone Jack Auto-Switching**
-* **Sleep / Wake & Battery Drain Prevention**
-* **Custom USB Port Mapping**
-* **Discrete GPU Power Down Verification**
+### 4. Keyboard Backlight & Telemetry: ROG Gaming Center
+To configure Aura 4-Zone RGB keyboard lighting, fan profiles, and hardware telemetry on macOS:
+* Download and install **[ROG Gaming Center for macOS](https://github.com/sritulasiram/rog-gaming-center-hackintosh)**.
 
 ---
 
-## 🤝 Credits
+## 📖 Troubleshooting & Optimizations
+
+For additional troubleshooting and optimization guides, see [**TROUBLESHOOTING.md**](TROUBLESHOOTING.md):
+* **iCloud, iMessage, and FaceTime Activation**
+* **Touchpad Polling vs GPIO Pinning Tuning**
+* **Audio Headphone Auto-Switching**
+* **Sleep / Wake Optimization & Hibernation Disabling**
+* **USB Port Customization**
+
+---
+
+## 🤝 Credits & Acknowledgements
 
 * [Apple](https://www.apple.com) for macOS.
 * [Dortania](https://github.com/dortania) for the OpenCore Install Guide.
 * [Acidanthera](https://github.com/acidanthera) for OpenCorePkg, Lilu, VirtualSMC, AppleALC, WhateverGreen, and companion kexts.
-* [OpenCore Simplify](https://github.com/lzhoang2801/OC-Simplify) for configuration generation tooling.
-* [corpnewt](https://github.com/corpnewt) for GenSMBIOS and ProperTree.
-* [alexandred](https://github.com/alexandred) & [VoodooI2C Team](https://github.com/VoodooI2C/VoodooI2C) for trackpad drivers.
-* [sinetek](https://github.com/sinetek/Sinetek-rtsx) for Realtek SD card reader driver.
+* [OpenCore Simplify](https://github.com/lzhoang2801/OC-Simplify) by @lzhoang2801.
+* [Blackosx](https://github.com/blackosx/OpenCanopy-Icons) for the BsxM1 OpenCanopy icon theme.
+* [corpnewt](https://github.com/corpnewt) for GenSMBIOS, ProperTree, and MountEFI.
+* [alexandred](https://github.com/alexandred) & the [VoodooI2C Team](https://github.com/VoodooI2C/VoodooI2C) for trackpad drivers.
+* [sinetek](https://github.com/sinetek/Sinetek-rtsx) for the Realtek SD card reader driver.
