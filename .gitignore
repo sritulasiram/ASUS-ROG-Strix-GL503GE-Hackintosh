@@ -13,3 +13,5 @@ Desktop.ini
 *.tmp
 *.bak
 *~
+config.personal.plist
+EFI/OC/config.personal.plist
