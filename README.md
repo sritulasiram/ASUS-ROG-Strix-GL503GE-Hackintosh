@@ -94,6 +94,7 @@ OpenCore EFI configuration for running macOS on the **ASUS ROG Strix GL503GE** l
 </details>
 
 ### 🔌 UEFI Drivers
+* `AudioDxe.efi` — OpenCore audio support and boot chime driver.
 * `OpenRuntime.efi` — Mandatory runtime driver for OpenCore memory management.
 * `OpenCanopy.efi` — High-resolution graphical boot menu interface.
 * `HfsPlus.efi` — HFS+ file system driver for macOS installers and recovery partitions.
