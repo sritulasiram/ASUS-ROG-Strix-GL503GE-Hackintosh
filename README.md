@@ -16,12 +16,18 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
   <i>macOS Tahoe running on ASUS ROG Strix GL503GE (Intel Core i7-8750H, Intel UHD Graphics 630, 16 GB DDR4)</i>
 </p>
 
-> ⚠️ **Disclaimer:** Hackintoshing violates Apple's macOS EULA. This repository is provided solely for educational and personal research purposes. Use at your own risk — the author takes no responsibility for any data loss, hardware damage, or warranty voidance.
+> [!WARNING]
+> ### ⚠️ Legal Disclaimer & Terms of Use
+> * **EULA Compliance:** Running macOS on non-Apple-branded hardware breaches Section 2B of Apple Inc.'s [macOS Software License Agreement (EULA)](https://www.apple.com/legal/sla/).
+> * **Educational & Research Purpose:** This repository is an open-source research project provided strictly for personal experimentation, technical research, and non-commercial educational purposes under Fair Use.
+> * **Zero Copyrighted Binaries:** This repository contains **no proprietary Apple code, copyrighted macOS operating system images, or Apple software distributions**. It distributes only open-source community bootloader components, SSDT hotpatches, and driver wrappers.
+> * **Non-Affiliation:** This project is independent and is **not affiliated with, endorsed by, sponsored by, or supported by Apple Inc., ASUSTeK Computer Inc., Intel Corporation, NVIDIA Corporation, or any of their affiliates**.
+> * **Limitation of Liability & Assumption of Risk:** You assume all risks. The authors and contributors shall not be held liable or responsible for any hardware damage, data loss, system instability, voided warranties, or Apple ID / iCloud account penalties resulting from the implementation or use of these files.
 
 ---
 
 ### 📌 Quick Navigation
-[💻 Hardware Status](#-hardware-specifications--status) • [📂 EFI Structure](#-repository-structure) • [⚙️ OpenCore Config](#-opencore-configuration) • [🔧 BIOS Settings](#-bios-configuration) • [🚀 Installation](#-installation--setup-guide) • [🌐 Apple Services](#-apple-ecosystem--continuity) • [🔌 USB Port Map](#-physical-usb-port-mapping) • [📖 Troubleshooting](#-troubleshooting--optimizations)
+[💻 Hardware Status](#-hardware-specifications--status) • [📂 EFI Structure](#-repository-structure) • [⚙️ OpenCore Config](#-opencore-configuration) • [🔧 BIOS Settings](#-bios-configuration) • [🚀 Installation](#-installation--setup-guide) • [🌐 Apple Services](#-apple-ecosystem--continuity) • [🔌 USB Port Map](#-physical-usb-port-mapping) • [📖 Troubleshooting](#-troubleshooting--optimizations) • [⚖️ Legal & Trademarks](#️-trademark-notices--legal)
 
 ---
 
@@ -273,3 +279,15 @@ For additional troubleshooting and optimization guides, see [**TROUBLESHOOTING.m
 * [corpnewt](https://github.com/corpnewt) for GenSMBIOS, ProperTree, and MountEFI.
 * [alexandred](https://github.com/alexandred) & the [VoodooI2C Team](https://github.com/VoodooI2C/VoodooI2C) for trackpad drivers.
 * [sinetek](https://github.com/sinetek/Sinetek-rtsx) for the Realtek SD card reader driver.
+
+---
+
+## ⚖️ Trademark Notices & Legal
+
+* **Apple Inc.:** macOS, OS X, Apple, Mac, MacBook, MacBook Pro, AirDrop, AirPlay, FaceTime, iMessage, iCloud, Apple Silicon, and the Apple logo are registered trademarks or service marks of Apple Inc. in the United States and other countries.
+* **ASUSTeK Computer Inc.:** ASUS, ROG (Republic of Gamers), ROG Strix, Aura Sync, and their respective logos are registered trademarks or trademarks of ASUSTeK Computer Inc. in Taiwan and/or other countries.
+* **Intel Corporation:** Intel, the Intel logo, Intel Core, Intel UHD Graphics, and Coffee Lake are trademarks or registered trademarks of Intel Corporation or its subsidiaries in the U.S. and/or other countries.
+* **NVIDIA Corporation:** NVIDIA, the NVIDIA logo, GeForce, and GeForce GTX are trademarks and/or registered trademarks of NVIDIA Corporation in the U.S. and other countries.
+* **Realtek Semiconductor Corp.:** Realtek and Realtek ALC are registered trademarks or trademarks of Realtek Semiconductor Corp.
+* **Samsung Electronics Co., Ltd.:** Samsung and Samsung 980 are registered trademarks of Samsung Electronics Co., Ltd.
+* **General Disclaimer:** All third-party product names, logos, brands, and registered trademarks mentioned within this repository are the property of their respective owners. Reference to any specific company, product, or trademark does not constitute or imply any affiliation with, endorsement, sponsorship, or recommendation by the respective trademark holders.
