@@ -61,13 +61,18 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
 
 | Feature | Status | Notes |
 | :--- | :---: | :--- |
-| **Apple ID & iCloud** | ✅ Working | Full iCloud Drive, Keychain sync, and Find My support (requires valid SMBIOS) |
-| **App Store & iTunes** | ✅ Working | Native access with genuine Apple ID |
-| **iMessage & FaceTime** | ✅ Working | Fully functional when `ROM` matches the onboard Ethernet MAC address |
-| **AirDrop & AirPlay Receiver** | ⚠️ Limited | Intel Wi-Fi cards do not support Apple's proprietary Wi-Fi Direct protocols |
-| **Universal Control & Handoff** | ⚠️ Partial | Clipboard sharing works intermittently; full Continuity requires Broadcom hardware |
-| **Continuity Camera** | ✅ Working | Wired USB connection supported |
-| **Sidecar** | ❌ Unsupported | Requires native Apple Silicon or specific T2 hardware encoder pathways |
+| **Apple ID & iCloud** | ✅ Working | Full iCloud Drive, Keychain sync, Safari tabs, and Notes sync |
+| **App Store & Updates** | ✅ Working | Native store access and app updates (`en0` set as `IOBuiltin`) |
+| **iMessage & FaceTime** | ✅ Working | Operational when `ROM` in SMBIOS matches onboard Ethernet MAC address |
+| **Handoff & Universal Clipboard** | ✅ Working | Active via Bluetooth LE (`IntelBTPatcher` + `BlueToolFixup`) and local Wi-Fi |
+| **Instant Hotspot** | ✅ Working | Auto-discovers iPhone Personal Hotspot over BLE without touching phone |
+| **Continuity Camera** | ⚠️ Wired Only | iPhone as 1080p/4K webcam works over USB cable; wireless requires AWDL |
+| **AirPlay Receiver** | ⚠️ Local LAN | Works when devices share same Wi-Fi/Ethernet LAN; direct P2P requires AWDL |
+| **AirDrop** | ❌ Unsupported | Intel Wi-Fi hardware lacks Apple Wireless Direct Link (**AWDL**) protocols |
+| **Universal Control** | ❌ Unsupported | Requires Apple AWDL tunneling; physical Broadcom hardware required |
+| **Apple Watch Auto Unlock** | ❌ Unsupported | Requires 802.11v Time-of-Flight (ToF) RTT nano-timestamping via AWDL |
+| **Sidecar** | ❌ Unsupported | `MacBookPro16,4` delegates Sidecar encryption to physical Apple T2 chip |
+| **iPhone Mirroring** *(macOS 15+)* | ❌ Unsupported | Strictly requires Apple Silicon or Intel Mac with physical Apple T2 chip |
 
 ---
 

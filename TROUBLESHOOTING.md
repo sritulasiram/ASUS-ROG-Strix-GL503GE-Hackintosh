@@ -12,7 +12,12 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
   1. Open [GenSMBIOS](https://github.com/corpnewt/GenSMBIOS).
   2. Generate values for model **`MacBookPro16,4`**.
   3. Verify the generated `SystemSerialNumber` is marked as **"Purchase Date not validated"** on [Apple Check Coverage](https://checkcoverage.apple.com/). (Do not use a serial that corresponds to an active, real Mac).
-  4. Paste `SystemSerialNumber`, `MLB`, `SystemUUID`, and `ROM` (MAC address in hex) into `PlatformInfo > Generic`.
+  4. Obtain your physical Ethernet MAC address from Terminal:
+     ```bash
+     ifconfig en0 | awk '/ether/{print $2}' | tr -d ':'
+     ```
+  5. Paste `SystemSerialNumber`, `MLB`, and `SystemUUID` into `PlatformInfo > Generic`.
+  6. Paste the 12-character hex Ethernet MAC address into `ROM` (as Data/hex). **Do not use a random MAC or Wi-Fi MAC**, as Apple ID tokens bind to `en0`.
 
 ---
 
@@ -48,7 +53,7 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
 * **Fix (OCLP-Mod Root Patching):**
   1. Ensure the following kexts are enabled in `config.plist`:
      * `IOSkywalkFamily.kext`
-     * `IO80211FamilyLegacy.kext` (with `AirPortBrcmNIC.kext` plugin)
+     * `IO80211FamilyLegacy.kext`
      * `AMFIPass.kext`
      * `AirportItlwm.kext`
   2. Verify boot-args contains `-amfipassbeta`.
