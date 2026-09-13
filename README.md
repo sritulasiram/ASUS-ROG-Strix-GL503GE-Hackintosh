@@ -39,21 +39,21 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
 | **iGPU** | Intel UHD Graphics 630 | ✅ Working | Full QE/CI acceleration, HDMI 2.0 patched, `-igfxblt` |
 | **dGPU** | NVIDIA GeForce GTX 1050 Ti (Mobile) | ❌ Disabled | Disabled via `SSDT-Disable_GPU_PEG0.aml` to save power and prevent heat |
 | **RAM** | 16 GB DDR4 2666 MHz | ✅ Working | Dual-channel detected & operational |
-| **Storage** | Samsung 980 500GB NVMe SSD | ✅ Working | Native APFS trim, power management via `NVMeFix.kext` |
+| **Storage** | Samsung 980 500GB NVMe SSD | ✅ Working | Native APFS trim (`SetApfsTrimTimeout = 0`), power management via `NVMeFix.kext` |
 | **Audio** | Realtek ALC (ALC295/294) | ✅ Working | `layout-id: 14` (`alcid=14`), speakers, 3.5mm combo jack, HDMI audio |
 | **Boot Chime** | UEFI Audio Output | ✅ Working | Native startup chime via `AudioDxe.efi` (`OCEFIAudio_VoiceOver_Boot.wav`) |
 | **Ethernet** | Realtek RTL8111 Gigabit Ethernet | ✅ Working | Handled by `RealtekRTL8111.kext` |
 | **Wi-Fi** | Intel AX210 / Wireless-AC 9560 | ✅ Working | Supported via **OCLP-Mod** root patching (`IOSkywalkFamily` + `AMFIPass`) |
-| **Bluetooth** | Intel Wireless Bluetooth | ✅ Working | `IntelBluetoothFirmware` + `IntelBTPatcher` + `BlueToolFixup` |
+| **Bluetooth** | Intel Wireless Bluetooth | ✅ Working | Internal USB Port 14 (`HS14`), `IntelBluetoothFirmware` + `IntelBTPatcher` v2.5.1 + `BlueToolFixup` |
 | **Trackpad** | ASUS I2C Multi-Touch Trackpad | ✅ Working | Smooth multi-touch gestures via `VoodooI2C` + `VoodooI2CHID` (`-vi2c-force-polling`) |
-| **Keyboard** | Built-in Backlit Keyboard | ✅ Working | Function, volume & brightness keys via `BrightnessKeys.kext` |
-| **RGB Lighting** | Aura 4-Zone RGB Lighting | ✅ Supported | Controlled via [ROG Gaming Center for macOS](https://github.com/sritulasiram/rog-gaming-center-hackintosh) |
+| **Keyboard** | Built-in Backlit Keyboard | ✅ Working | Function row keys (F1–F12) mapped via `./scripts/setup_function_keys.sh` |
+| **RGB Lighting** | Aura 4-Zone RGB Lighting | ✅ Supported | Brightness (`Fn + Up/Down`) & effects controlled via [ROG Gaming Center for macOS](https://github.com/sritulasiram/rog-gaming-center-hackintosh) |
 | **Webcam** | Built-in USB HD Camera | ✅ Working | Native macOS UVC support |
 | **Card Reader** | Realtek RTS5229 PCIe SD Card Reader | 🔄 Testing | Driver included (`Sinetek-rtsx.kext`) |
 | **Battery Status** | ASUS Smart Battery | ✅ Working | Real-time percentage & AC health via `SMCBatteryManager.kext` |
 | **Display** | 15.6" Full HD 120Hz IPS Display | ✅ Working | Native brightness slider, 120Hz refresh rate |
 | **HDMI Output** | HDMI 2.0 Port | ✅ Working | 4K video & audio output |
-| **Sleep / Wake** | S3 Sleep State | ✅ Working | Sleep, lid close, and wake operational |
+| **Sleep / Wake** | S3 Sleep State | ✅ Working | Sleep, lid close, and wake operational (`SSDT-GPRW`, `fix_sleep_pmset.sh`) |
 
 ---
 
@@ -121,13 +121,14 @@ All USB ports are custom-mapped within macOS's 15-port per controller limit usin
 * **Target SMBIOS:** `MacBookPro16,4`
 * **Boot Arguments:**
   ```text
-  debug=0x100 alcid=14 keepsyms=1 -amfipassbeta -igfxblt -vi2c-force-polling
+  debug=0x100 alcid=14 keepsyms=1 -amfipassbeta -igfxblt -vi2c-force-polling darkwake=0
   ```
 * **Boot Argument Breakdown:**
   * `alcid=14` — Selects AppleALC layout-id 14 for the Realtek ALC295 codec.
   * `-igfxblt` — Fixes display backlight level initialization at boot.
   * `-vi2c-force-polling` — Forces polling mode on VoodooI2C for reliable touchpad input.
   * `-amfipassbeta` — Allows AMFIPass to work on modern beta/new macOS versions.
+  * `darkwake=0` — Disables maintenance darkwake cycles for rock-solid sleep stability.
   * `debug=0x100 keepsyms=1` — Retains kernel symbols and prevents auto-reboot on kernel panic.
 
 ### 🎨 Graphical Boot Picker (OpenCanopy)
@@ -147,6 +148,7 @@ All USB ports are custom-mapped within macOS's 15-port per controller limit usin
 * `SSDT-Disable_GPU_PEG0.aml` — Shuts down the discrete NVIDIA GTX 1050 Ti GPU.
 * `SSDT-EC.aml` — Embedded Controller compatibility patch for macOS.
 * `SSDT-GPI0.aml` — Enables GPIO controller for touchpad hardware interrupt routing.
+* `SSDT-GPRW.aml` — Fixes instant wake loop caused by `XDCI`, `CNVW`, and `XHC` on GPE `0x6D`.
 * `SSDT-MCHC.aml` — Fixes Memory Controller Hub recognition.
 * `SSDT-PLUG.aml` — Enables native CPU power management (`X86PlatformPlugin`).
 * `SSDT-PMC.aml` — Provides native NVRAM support for Intel 300-series chipsets.
@@ -252,9 +254,30 @@ On macOS Sonoma (14) and Sequoia (15):
 4. Install the **Networking: Modern Wireless** patch set.
 5. Reboot your laptop. Native Wi-Fi management and Control Center networking will now be active.
 
-### 4. Keyboard Backlight & Telemetry: ROG Gaming Center
-To configure Aura 4-Zone RGB keyboard lighting, fan profiles, and hardware telemetry on macOS:
+### 4. Post-Installation: Helper Scripts
+The repository includes automated helper scripts under `scripts/`:
+
+* **Function Keys (F1–F12):** Maps physical F-keys to native macOS media controls (Mute, Play/Pause, Next/Prev, Brightness, Mission Control, Launchpad, Volume):
+  ```bash
+  ./scripts/setup_function_keys.sh
+  ```
+* **Sleep / Wake Optimization:** Eliminates DarkWake loops, disables sleepimage, and sets pure S3 RAM sleep:
+  ```bash
+  ./scripts/fix_sleep_pmset.sh
+  ```
+* **Deploy EFI to Boot Drive:** Synchronizes updated EFI to your internal ESP (`/dev/disk0s1`) with an automatic Desktop safety backup:
+  ```bash
+  sudo ./scripts/deploy_to_esp.sh
+  ```
+
+### 5. Keyboard Backlight & Telemetry: ROG Gaming Center
+On ASUS ROG laptops with Aura RGB keyboards, the backlight is driven over USB by an internal **ITE 8910** controller (`0x0B05:0x1869`), not by motherboard ACPI.
 * Download and install **[ROG Gaming Center for macOS](https://github.com/sritulasiram/rog-gaming-center-hackintosh)**.
+* **Features:**
+  * **`Fn + Up Arrow` / `Fn + Down Arrow`:** Hardware keyboard backlight brightness control with native macOS HUD bezel.
+  * **Aura RGB Lighting:** 4-zone static colors, rainbow, color cycle, breathing, and strobing effects.
+  * **ROG Dedicated Key:** Instantly launches or toggles the application window.
+  * **Hardware Telemetry:** Real-time CPU/iGPU temperatures, fan RPM, and battery health via VirtualSMC.
 
 ---
 

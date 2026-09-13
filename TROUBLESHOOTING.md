@@ -58,30 +58,41 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
   6. Reboot when prompted.
 
 ### Issue: Bluetooth fails to turn on or toggle.
-* The EFI includes `IntelBluetoothFirmware.kext`, `IntelBTPatcher.kext`, and `BlueToolFixup.kext`.
+* The EFI includes `IntelBluetoothFirmware.kext` (v2.5.1), `IntelBTPatcher.kext` (v2.5.1), and `BlueToolFixup.kext`.
 * **Important:** Do **not** use `IntelBluetoothInjector.kext` on macOS Monterey and later (it was replaced by `BlueToolFixup.kext`).
+* On macOS Sequoia (15.x) and Tahoe (16.x), `IntelBTPatcher.kext` v2.5.1+ is required to prepare and complete HCI memory descriptors in IOKit; earlier versions fail to initialize or toggle Bluetooth.
 
 ---
 
 ## 5. 💤 Sleep / Wake & Battery Optimization
 
-### Issue: Laptop wakes immediately after sleeping or drains battery when lid is closed.
-Run the following terminal commands to optimize macOS laptop power management:
+### Issue: Laptop wakes immediately after sleeping (`due to XDCI CNVW/`) or cycles in DarkWake.
+* **Instant Wake Root Cause:** The ASUS ACPI tables route `XDCI` (USB device controller), `CNVW` (Intel Wi-Fi/Bluetooth), and `XHC` to GPE `0x6D`. When entering sleep, unpatched firmware signals wake immediately.
+* **EFI ACPI Fix:** The EFI includes `SSDT-GPRW.aml` and the `GPRW to XPRW` ACPI rename patch in `config.plist`, which intercepts `0x6D` and `0x0D` GPE events and suppresses spurious wakeups while preserving power button and lid wake.
+* **DarkWake Suppression:** `darkwake=0` is included in `boot-args` to prevent display-off maintenance wakeups.
 
+### Quick Fix Script:
+Run the repository helper script to set all recommended macOS laptop power parameters:
 ```bash
-# Set hibernation mode to 0 (RAM only, fast sleep)
+./scripts/fix_sleep_pmset.sh
+```
+
+Or apply them manually via Terminal:
+```bash
+# Set hibernation mode to 0 (pure S3 RAM sleep)
 sudo pmset -a hibernatemode 0
 
-# Disable sleep image writing to disk
+# Disable deep standby timer and autopoweroff
 sudo pmset -a autopoweroff 0
 sudo pmset -a standby 0
 sudo pmset -a powernap 0
 
-# Disable network wakeups while sleeping
+# Disable network keepalive wakeups while asleep (prevents DarkWake loops on Intel Wi-Fi)
 sudo pmset -a tcpkeepalive 0
 sudo pmset -a womp 0
+sudo pmset -a proximitywake 0
 
-# Remove existing sleepimage to free disk space
+# Remove existing sleepimage to reclaim disk space
 sudo rm -f /var/vm/sleepimage
 ```
 
@@ -95,13 +106,12 @@ pmset -g log | grep -e "Wake.*due to"
 
 ## 6. 🔌 Custom USB Port Mapping
 
-* The EFI includes `UTBDefault.kext` + `USBToolBox.kext`.
-* For optimal USB 3.0 speeds, sleep stability, and Bluetooth internal routing:
-  1. Boot into Windows (or macOS) and run the [USBToolBox tool](https://github.com/USBToolBox/tool).
-  2. Discover all ports (plug a USB 2.0 device into every port, then a USB 3.0 device).
-  3. Set internal ports (Webcam, Bluetooth, Card Reader) as **Internal (255)**.
-  4. Set standard external ports as **USB 3.0 Type-A (3)** or **Type-C (9/10)**.
-  5. Export `UTBMap.kext` and replace `UTBDefault.kext` in `EFI/OC/Kexts/`.
+* All 12 physical and internal ports of the ASUS ROG Strix GL503GE are mapped inside `UTBDefault.kext` (+ `USBToolBox.kext`):
+  * **Internal (Type 255):** `HS07` (HD WebCam), `HS08` (ITE 8910 Aura Keyboard RGB), and `HS14` (Intel Bluetooth Controller). Marking these as internal eliminates `com.apple.usb.externaldevice` sleep prevention assertions.
+  * **External USB 3.0 Type-A (Type 3):** `HS01`/`SS01`, `HS02`/`SS02`, `HS03`/`SS03`.
+  * **External USB-C (Type 9):** `HS04`/`SS04`.
+  * **External USB 2.0 (Type 0):** `HS05`.
+* Total port count is 12 (safely within macOS's 15-port limit), ensuring full USB 3.0 (5 Gbps) SuperSpeed operation and proper sleep states.
 
 ---
 
@@ -118,3 +128,37 @@ pmset -g log | grep -e "Wake.*due to"
 * NVIDIA Pascal (GTX 10-series) GPUs have no metal graphics acceleration in modern macOS.
 * The discrete GPU is safely powered down using `SSDT-Disable_GPU_PEG0.aml`.
 * **Verify:** Check *System Information > Graphics/Displays*. Only **Intel UHD Graphics 630** should appear. If the NVIDIA GPU shows as an unaccelerated Display controller, verify `SSDT-Disable_GPU_PEG0.aml` is active under `ACPI > Add`.
+
+---
+
+## 9. ⌨️ Keyboard Function Keys (F1–F12) & Backlight Brightness
+
+### 1. Function Row Keys (F1 to F12):
+The physical function keys on the ASUS ROG Strix GL503GE can be mapped to native macOS media controls:
+* **F1:** Audio Mute
+* **F2:** Previous Track
+* **F3:** Play / Pause
+* **F4:** Next Track
+* **F5:** Mission Control (Exposé)
+* **F6:** Launchpad (App Grid)
+* **F7:** Screen Brightness Down
+* **F8:** Screen Brightness Up
+* **F9:** Spotlight Search
+* **F10:** Audio Mute
+* **F11:** Volume Down
+* **F12:** Volume Up
+
+**Quick Installation:**
+Run the included post-install script from your terminal:
+```bash
+./scripts/setup_function_keys.sh
+```
+This installs a lightweight LaunchAgent at `~/Library/LaunchAgents/com.local.KeyMapping.plist` that activates the mapping automatically on every login.
+
+---
+
+### 2. Keyboard Backlight (`Fn + Up Arrow` / `Fn + Down Arrow`):
+* **Why EFI cannot control it:** On ASUS ROG laptops with Aura RGB keyboards, the backlight is managed by an internal USB microcontroller (**ITE 8910**, `0x0B05:0x1869`), not by motherboard ACPI.
+* **Control Software:** Use [**ROG Gaming Center for macOS**](https://github.com/sritulasiram/rog-gaming-center-hackintosh).
+* The app intercepts the hardware `0x00C4` / `0x00C5` HID reports when you press `Fn + Up / Down`, steps the physical LED brightness (0–3), and triggers macOS's native backlight HUD bezel.
+
