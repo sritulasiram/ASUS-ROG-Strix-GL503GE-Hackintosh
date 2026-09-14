@@ -67,9 +67,9 @@
 					<key>HS03</key>
 					<dict>
 						<key>Comment</key>
-						<string>Left Front USB 3.0 Type-A</string>
+						<string>Right Top USB 2.0 Type-A</string>
 						<key>UsbConnector</key>
-						<integer>3</integer>
+						<integer>0</integer>
 						<key>port</key>
 						<data>
 						AwAAAA==
@@ -78,23 +78,12 @@
 					<key>HS04</key>
 					<dict>
 						<key>Comment</key>
-						<string>Left Center USB-C</string>
+						<string>Right Bottom USB 3.0 Type-A</string>
 						<key>UsbConnector</key>
-						<integer>9</integer>
+						<integer>3</integer>
 						<key>port</key>
 						<data>
 						BAAAAA==
-						</data>
-					</dict>
-					<key>HS05</key>
-					<dict>
-						<key>Comment</key>
-						<string>Right Side USB 2.0 Type-A</string>
-						<key>UsbConnector</key>
-						<integer>0</integer>
-						<key>port</key>
-						<data>
-						BQAAAA==
 						</data>
 					</dict>
 					<key>HS07</key>
@@ -117,6 +106,28 @@
 						<key>port</key>
 						<data>
 						CAAAAA==
+						</data>
+					</dict>
+					<key>HS09</key>
+					<dict>
+						<key>Comment</key>
+						<string>Left USB-C USB 2.0 (Orientation 1 / EarPods)</string>
+						<key>UsbConnector</key>
+						<integer>10</integer>
+						<key>port</key>
+						<data>
+						CQAAAA==
+						</data>
+					</dict>
+					<key>HS11</key>
+					<dict>
+						<key>Comment</key>
+						<string>Left USB-C USB 2.0 (Orientation 2 / EarPods)</string>
+						<key>UsbConnector</key>
+						<integer>10</integer>
+						<key>port</key>
+						<data>
+						CwAAAA==
 						</data>
 					</dict>
 					<key>HS14</key>
@@ -155,9 +166,9 @@
 					<key>SS03</key>
 					<dict>
 						<key>Comment</key>
-						<string>Left Front USB 3.0 SuperSpeed</string>
+						<string>Left USB-C SuperSpeed (Orientation 1)</string>
 						<key>UsbConnector</key>
-						<integer>3</integer>
+						<integer>10</integer>
 						<key>port</key>
 						<data>
 						EwAAAA==
@@ -166,12 +177,23 @@
 					<key>SS04</key>
 					<dict>
 						<key>Comment</key>
-						<string>Left Center USB-C SuperSpeed</string>
+						<string>Left USB-C SuperSpeed (Orientation 2)</string>
 						<key>UsbConnector</key>
-						<integer>9</integer>
+						<integer>10</integer>
 						<key>port</key>
 						<data>
 						FAAAAA==
+						</data>
+					</dict>
+					<key>SS05</key>
+					<dict>
+						<key>Comment</key>
+						<string>Right Bottom USB 3.0 SuperSpeed</string>
+						<key>UsbConnector</key>
+						<integer>3</integer>
+						<key>port</key>
+						<data>
+						FQAAAA==
 						</data>
 					</dict>
 				</dict>

@@ -36,7 +36,7 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
 | Component | Hardware Details | Status | Notes / Drivers |
 | :--- | :--- | :---: | :--- |
 | **CPU** | Intel Core i7-8750H (Coffee Lake-H, 6c/12t) | ✅ Working | Native Power Management (`SSDT-PLUG`, `X86PlatformPlugin`) |
-| **iGPU** | Intel UHD Graphics 630 | ✅ Working | Full QE/CI acceleration, HDMI 2.0 patched, `-igfxblt` |
+| **iGPU** | Intel UHD Graphics 630 | ✅ Working | Full QE/CI acceleration (2048 MB VRAM), Apple GuC firmware (`igfxfw=2`), backlight smoother (`-igfxbls`), `-igfxblt`, HDMI 2.0 |
 | **dGPU** | NVIDIA GeForce GTX 1050 Ti (Mobile) | ❌ Disabled | Disabled via `SSDT-Disable_GPU_PEG0.aml` to save power and prevent heat |
 | **RAM** | 16 GB DDR4 2666 MHz | ✅ Working | Dual-channel detected & operational |
 | **Storage** | Samsung 980 500GB NVMe SSD | ✅ Working | Native APFS trim (`SetApfsTrimTimeout = 0`), power management via `NVMeFix.kext` |
@@ -49,7 +49,7 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
 | **Keyboard** | Built-in Backlit Keyboard | ✅ Working | Function row keys (F1–F12) mapped via `./scripts/setup_function_keys.sh` |
 | **RGB Lighting** | Aura 4-Zone RGB Lighting | ✅ Supported | Brightness (`Fn + Up/Down`) & effects controlled via [ROG Gaming Center for macOS](https://github.com/sritulasiram/rog-gaming-center-hackintosh) |
 | **Webcam** | Built-in USB HD Camera | ✅ Working | Native macOS UVC support |
-| **Card Reader** | Realtek RTS5229 PCIe SD Card Reader | 🔄 Testing | Driver included (`Sinetek-rtsx.kext`) |
+| **Card Reader** | Realtek RTS5229 PCIe SD Card Reader | 🔄 Supported | Handled by `Sinetek-rtsx.kext` (macOS Tahoe compatible; insert before boot/wake) |
 | **Battery Status** | ASUS Smart Battery | ✅ Working | Real-time percentage & AC health via `SMCBatteryManager.kext` |
 | **Display** | 15.6" Full HD 120Hz IPS Display | ✅ Working | Native brightness slider, 120Hz refresh rate |
 | **HDMI Output** | HDMI 2.0 Port | ✅ Working | 4K video & audio output |
@@ -78,16 +78,18 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
 
 ## 🔌 Physical USB Port Mapping
 
-All USB ports are custom-mapped within macOS's 15-port per controller limit using `USBToolBox.kext` and `UTBDefault.kext`:
+All physical and internal USB ports are custom-mapped within macOS's 15-port per controller limit (14 ports total) using `USBToolBox.kext` and `UTBDefault.kext`:
 
 | Port | Chassis Location | Connector Type | Speed | Connected Device / Function |
 | :--- | :--- | :--- | :--- | :--- |
-| **SS01 / HS01** | Left Side (Rear) | USB 3.0 Type-A | USB 3.0 (5 Gbps) | External storage, flash drives, peripherals |
+| **SS01 / HS01** | Left Side (Rear) | USB 3.0 Type-A | USB 3.0 (5 Gbps) | External storage, flash drives, high-speed peripherals |
 | **SS02 / HS02** | Left Side (Middle) | USB 3.0 Type-A | USB 3.0 (5 Gbps) | External storage, mice, keyboards |
-| **SS03 / HS03** | Left Side (Front) | USB 3.0 Type-A | USB 3.0 (5 Gbps) | High-speed data devices |
-| **SS04 / HS04** | Left Side (Center) | USB-C 3.1 Gen 1 | Type-C (5 Gbps) | Type-C hubs, flash drives, external SSDs |
-| **HS05** | Right Side | USB 2.0 Type-A | USB 2.0 (480 Mbps) | Mouse dongles, flash drives |
+| **HS09 / HS11** | Left Side (Center) | Type-C w/o switch (Type 10) | USB 2.0 (480 Mbps) | USB-C audio, DACs, smartphones, flash drives (dual-orientation) |
+| **SS03 / SS04** | Left Side (Center) | Type-C w/o switch (Type 10) | USB 3.1 (5 Gbps) | High-speed Type-C SSDs, flash drives (dual-orientation) |
+| **HS03** | Right Side (Top) | USB 2.0 Type-A | USB 2.0 (480 Mbps) | Mouse dongles, flash drives, legacy peripherals |
+| **SS05 / HS04** | Right Side (Bottom) | USB 3.0 Type-A | USB 3.0 (5 Gbps) | External storage, high-speed peripherals |
 | **HS07** | Internal Header | Internal (Type 255) | USB 2.0 (480 Mbps) | ASUS HD USB Webcam |
+| **HS08** | Internal Header | Internal (Type 255) | USB 2.0 (480 Mbps) | ITE 8910 Aura RGB Keyboard Microcontroller |
 | **HS14** | Internal Header | Internal (Type 255) | USB 2.0 (480 Mbps) | Intel Bluetooth Controller (9560 / AX210) |
 
 ---

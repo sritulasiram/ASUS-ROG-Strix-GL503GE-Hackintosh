@@ -43,6 +43,7 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
   * Layout `13`, `14`, `15`, `21`, `22`, `28`
   * To test another layout, modify the `alcid=XX` argument in `config.plist` under `NVRAM > 7C436110-AB2A-4BBB-A880-FE41995C9F82 > boot-args`.
 * **Headphone Jack Auto-Switching:** If the 3.5mm jack does not detect plugin/unplug events, install [ALCPlugFix-Swift](https://github.com/black-dragon-x/ALCPlugFix-Swift) to monitor jack status.
+* **Digital USB-C Alternative (Zero Setup):** The laptop's USB-C port is mapped as Type 10 (`HS09` / `HS11`) in `UTBDefault.kext`. Connecting **Apple USB-C EarPods** or USB-C DAC dongles bypasses the analog ALC295 codec completely, providing native 24-bit digital audio, inline mic, and volume controls out of the box.
 
 ---
 
@@ -109,22 +110,31 @@ pmset -g log | grep -e "Wake.*due to"
 
 ---
 
-## 6. 🔌 Custom USB Port Mapping
+## 6. 🔌 Custom USB Port Mapping & USB-C EarPods
 
-* All 12 physical and internal ports of the ASUS ROG Strix GL503GE are mapped inside `UTBDefault.kext` (+ `USBToolBox.kext`):
-  * **Internal (Type 255):** `HS07` (HD WebCam), `HS08` (ITE 8910 Aura Keyboard RGB), and `HS14` (Intel Bluetooth Controller). Marking these as internal eliminates `com.apple.usb.externaldevice` sleep prevention assertions.
-  * **External USB 3.0 Type-A (Type 3):** `HS01`/`SS01`, `HS02`/`SS02`, `HS03`/`SS03`.
-  * **External USB-C (Type 9):** `HS04`/`SS04`.
-  * **External USB 2.0 (Type 0):** `HS05`.
-* Total port count is 12 (safely within macOS's 15-port limit), ensuring full USB 3.0 (5 Gbps) SuperSpeed operation and proper sleep states.
+* All 14 physical and internal logical ports of the ASUS ROG Strix GL503GE are mapped inside `UTBDefault.kext` (+ `USBToolBox.kext`):
+  * **Internal (Type 255):** `HS07` (HD WebCam), `HS08` (ITE 8910 Aura Keyboard RGB), and `HS14` (Intel Bluetooth Controller). Marking internal headers eliminates `com.apple.usb.externaldevice` sleep prevention assertions.
+  * **External USB 3.0 Type-A (Type 3):**
+    * Left Rear: `HS01` / `SS01`
+    * Left Middle: `HS02` / `SS02`
+    * Right Bottom: `HS04` / `SS05`
+  * **External USB 2.0 Type-A (Type 0):** Right Top `HS03`.
+  * **External USB-C (Type 10 — Type-C without Switch):**
+    * The physical USB-C port does not have an on-board hardware multiplexer. It routes to two separate logical ports per standard for dual-orientation support:
+    * **USB 2.0 (HighSpeed):** `HS09` (Orientation 1) and `HS11` (Orientation 2). This provides native out-of-the-box support for **Apple USB-C EarPods**, USB-C audio dongles/DACs, and smartphone data transfer.
+    * **USB 3.1 (SuperSpeed):** `SS03` (Orientation 1) and `SS04` (Orientation 2), delivering 5 Gbps in both plug orientations.
+* Total port count is 14 (safely within macOS's 15-port limit), ensuring full dual-orientation SuperSpeed operation, audio accessory support, and clean S3 sleep states.
 
 ---
 
-## 7. 🔆 Display Brightness & Backlight
+## 7. 🔆 Display, Graphics (Intel UHD 630) & Backlight
 
-* **Current Implementation:** Display backlight uses `SSDT-PNLF.aml` paired with `WhateverGreen.kext` and the boot-arg `-igfxblt`.
-* **Keyboard Hotkeys:** `BrightnessKeys.kext` handles `Fn + F7` / `Fn + F8` (or dedicated brightness keys) natively.
-* If brightness steps are uneven, ensure `applbkl=1` or `-igfxblt` is retained in `boot-args`.
+* **Display Panel:** Chi Mei Innolux `N156HHE-GA1` (15.6" 1080p @ **120.00Hz**, 285 MHz pixel clock).
+* **VRAM Allocation:** Dynamic VRAM is boosted to **2048 MB** (`framebuffer-unifiedmem` = `<00000080>`), giving Metal 3 and high-refresh 120Hz frame buffers ample headroom.
+* **Intel GuC Firmware:** Hardware coarse power gating and scheduler offload are forced via `igfxfw = <02000000>` and `igfxfw=2` in `boot-args`, significantly decreasing WindowServer CPU usage and frame-time latency.
+* **Backlight Smoother:** Native progressive brightness fading transitions are enabled via `enable-backlight-smoother` (`<01000000>`) and `-igfxbls` in `boot-args`.
+* **Backlight Registers Fix:** macOS 13.4+ inlined register calls are handled via `enable-backlight-registers-alternative-fix` (`<01000000>`) and `-igfxblt` in `boot-args`.
+* **Keyboard Hotkeys:** `BrightnessKeys.kext` handles `Fn + F7` / `Fn + F8` natively.
 
 ---
 
@@ -166,4 +176,19 @@ This installs a lightweight LaunchAgent at `~/Library/LaunchAgents/com.local.Key
 * **Why EFI cannot control it:** On ASUS ROG laptops with Aura RGB keyboards, the backlight is managed by an internal USB microcontroller (**ITE 8910**, `0x0B05:0x1869`), not by motherboard ACPI.
 * **Control Software:** Use [**ROG Gaming Center for macOS**](https://github.com/sritulasiram/rog-gaming-center-hackintosh).
 * The app intercepts the hardware `0x00C4` / `0x00C5` HID reports when you press `Fn + Up / Down`, steps the physical LED brightness (0–3), and triggers macOS's native backlight HUD bezel.
+
+---
+
+## 10. 💽 SD Card Reader (Realtek RTS5229) & macOS Tahoe Compatibility
+
+* **Hardware Controller:** Realtek RTS5229 PCIe Card Reader (`0x10EC:0x5229`).
+* **Active Driver:** `Sinetek-rtsx.kext` (v9.0.0).
+* **Why not `RealtekCardReader.kext` on macOS Tahoe (16.x)?:**
+  * While `RealtekCardReader.kext` by 0xFireWolf offers native hotplugging on older macOS releases, it hooks into private kernel structures in `IOStorageFamily` and `IOPCIFamily`.
+  * In **macOS Tahoe (Darwin 25.x)**, Apple refactored IOKit memory descriptors and internal storage APIs. Using `RealtekCardReader.kext` on macOS Tahoe triggers an **early kernel panic during PCIe probe, causing the system to fail to boot**.
+* **Best Practices with `Sinetek-rtsx.kext`:**
+  1. `Sinetek-rtsx.kext` relies on standard `IOPCIDevice` matching without deep kernel hooks, allowing macOS Tahoe to boot safely.
+  2. **Card Insertion:** Insert the SD card *before booting* or *before waking* the laptop if hotplug detection does not mount the card automatically.
+  3. **Sleep Precaution:** Do not leave an SD card inserted in the slot when placing the laptop into S3 sleep, as legacy block storage drivers can stall sleep transitions.
+  4. If you do not use the SD card slot, you may safely disable `Sinetek-rtsx.kext` in `config.plist` under `Kernel > Add` to keep the kernel stack minimal.
 
