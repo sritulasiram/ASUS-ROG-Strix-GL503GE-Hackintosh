@@ -135,6 +135,12 @@ pmset -g log | grep -e "Wake.*due to"
 * **Backlight Smoother:** Native progressive brightness fading transitions are enabled via `enable-backlight-smoother` (`<01000000>`) and `-igfxbls` in `boot-args`.
 * **Backlight Registers Fix:** macOS 13.4+ inlined register calls are handled via `enable-backlight-registers-alternative-fix` (`<01000000>`) and `-igfxblt` in `boot-args`.
 * **Keyboard Hotkeys:** `BrightnessKeys.kext` handles `Fn + F7` / `Fn + F8` natively.
+* **Color Profile Management:** The wide-gamut (94% NTSC) Chi Mei panel's ColorSync profile can be checked and switched instantly between Native EDID Wide-Gamut, standard sRGB, or Display P3 using the included helper script:
+  ```bash
+  ./scripts/set_color_profile.py --native    # Restores true wide-gamut EDID mapping (Recommended)
+  ./scripts/set_color_profile.py --srgb      # Sets standard sRGB profile
+  ./scripts/set_color_profile.py --status    # Displays current ColorSync active profile
+  ```
 
 ---
 
