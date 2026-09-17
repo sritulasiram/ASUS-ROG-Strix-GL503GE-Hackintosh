@@ -36,7 +36,7 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
 | Component | Hardware Details | Status | Notes / Drivers |
 | :--- | :--- | :---: | :--- |
 | **CPU** | Intel Core i7-8750H (Coffee Lake-H, 6c/12t) | ✅ Working | Native Power Management (`SSDT-PLUG`, `X86PlatformPlugin`) |
-| **iGPU** | Intel UHD Graphics 630 | ✅ Working | Full QE/CI acceleration (2048 MB VRAM), complete modeset (`complete-modeset`), force online (`force-online`), backlight smoother (`-igfxbls`), `-igfxblt`, HDMI 2.0 |
+| **iGPU** | Intel UHD Graphics 630 | ✅ Working | Full QE/CI acceleration (2048 MB VRAM), complete modeset (`complete-modeset`), force online (`force-online`), instant backlight fix (`-igfxblr`), HDMI 2.0 |
 | **dGPU** | NVIDIA GeForce GTX 1050 Ti (Mobile) | ❌ Disabled | Disabled via `SSDT-Disable_GPU_PEG0.aml` to save power and prevent heat |
 | **RAM** | 16 GB DDR4 2666 MHz | ✅ Working | Dual-channel detected & operational |
 | **Storage** | Samsung 980 500GB NVMe SSD | ✅ Working | Native APFS trim (`SetApfsTrimTimeout = 0`), power management via `NVMeFix.kext` |

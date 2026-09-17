@@ -152,8 +152,7 @@ pmset -g log | grep -e "Wake.*due to"
   * `complete-modeset-framebuffers` (`<data>AAAAAAAAAAE=</data>`) targets connector 0 (internal eDP).
   * `force-online` (`<data>AQAAAA==</data>`) and `force-online-framebuffers` (`<data>AAAAAAAAAAE=</data>`) ensure the panel is immediately recognized as online.
   * `igfxfw=2` (GuC firmware loading) is omitted: on mobile Coffee Lake and newer macOS releases, GuC firmware loading causes an asynchronous handshake race condition during the display server transition that leaves the screen dark.
-* **Backlight Smoother:** Native progressive brightness fading transitions are enabled via `enable-backlight-smoother` (`<01000000>`) and `-igfxbls` in `boot-args`.
-* **Backlight Registers Fix:** macOS 13.4+ inlined register calls are handled via `enable-backlight-registers-alternative-fix` (`<01000000>`) and `-igfxblt` in `boot-args`.
+* **Backlight Registers Fix (Instant Backlight Initialization):** The Coffee Lake backlight registers are initialized immediately upon driver attach using `enable-backlight-registers-fix` (`<data>AQAAAA==</data>`) and `-igfxblr` in `boot-args`. This completely eliminates the temporary dark screen delay before the login window appears (previously caused by `-igfxbls` / Backlight Smoother holding brightness at 0% during early boot).
 * **Keyboard Hotkeys:** `BrightnessKeys.kext` handles `Fn + F7` / `Fn + F8` natively.
 * **Color Profile Management:** The wide-gamut (94% NTSC) Chi Mei panel's ColorSync profile can be checked and switched instantly between Native EDID Wide-Gamut, standard sRGB, or Display P3 using the included helper script:
   ```bash

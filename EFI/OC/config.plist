@@ -376,9 +376,7 @@
                     <data>AQAAAA==</data>
                     <key>complete-modeset-framebuffers</key>
                     <data>AAAAAAAAAAE=</data>
-                    <key>enable-backlight-registers-alternative-fix</key>
-                    <data>AQAAAA==</data>
-                    <key>enable-backlight-smoother</key>
+                    <key>enable-backlight-registers-fix</key>
                     <data>AQAAAA==</data>
                     <key>enable-hdmi20</key>
                     <data>AQAAAA==</data>
@@ -1269,7 +1267,7 @@
                     <key>bluetoothInternalControllerInfo</key>
                     <data>AAAAAAAAAAAAAAAAAAA=</data>
                     <key>boot-args</key>
-                    <string>debug=0x100 alcid=14 keepsyms=1 -amfipassbeta -igfxblt -igfxbls -vi2c-force-polling darkwake=0 -btlfxallowanyaddr -btlfxboardid</string>
+                    <string>debug=0x100 alcid=14 keepsyms=1 -amfipassbeta -igfxblr -vi2c-force-polling darkwake=0 -btlfxallowanyaddr -btlfxboardid</string>
                     <key>csr-active-config</key>
                     <data>AwoAAA==</data>
                     <key>prev-lang:kbd</key>
