@@ -359,8 +359,10 @@
             <dict>
                 <key>PciRoot(0x0)/Pci(0x1f,0x3)</key>
                 <dict>
+                    <key>alc-layout-id</key>
+                    <data>DgAAAA==</data>
                     <key>layout-id</key>
-                    <integer>14</integer>
+                    <data>DgAAAA==</data>
                 </dict>
                 <key>PciRoot(0x0)/Pci(0x2,0x0)</key>
                 <dict>
