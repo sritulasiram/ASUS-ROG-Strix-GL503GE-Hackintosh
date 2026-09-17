@@ -147,7 +147,11 @@ pmset -g log | grep -e "Wake.*due to"
 
 * **Display Panel:** Chi Mei Innolux `N156HHE-GA1` (15.6" 1080p @ **120.00Hz**, 285 MHz pixel clock).
 * **VRAM Allocation:** Dynamic VRAM is boosted to **2048 MB** (`framebuffer-unifiedmem` = `<00000080>`), giving Metal 3 and high-refresh 120Hz frame buffers ample headroom.
-* **Intel GuC Firmware:** Hardware coarse power gating and scheduler offload are forced via `igfxfw = <02000000>` and `igfxfw=2` in `boot-args`, significantly decreasing WindowServer CPU usage and frame-time latency.
+* **Complete Modeset & Force Online (Black Screen Fix):** The 120Hz internal eDP panel transitions from 60Hz UEFI GOP to 120Hz WindowServer. To prevent intermittent black screens upon boot completion:
+  * `complete-modeset` (`<data>AQAAAA==</data>`) forces WhateverGreen to fully retrain display link timings.
+  * `complete-modeset-framebuffers` (`<data>AAAAAAAAAAE=</data>`) targets connector 0 (internal eDP).
+  * `force-online` (`<data>AQAAAA==</data>`) and `force-online-framebuffers` (`<data>AAAAAAAAAAE=</data>`) ensure the panel is immediately recognized as online.
+  * `igfxfw=2` (GuC firmware loading) is omitted: on mobile Coffee Lake and newer macOS releases, GuC firmware loading causes an asynchronous handshake race condition during the display server transition that leaves the screen dark.
 * **Backlight Smoother:** Native progressive brightness fading transitions are enabled via `enable-backlight-smoother` (`<01000000>`) and `-igfxbls` in `boot-args`.
 * **Backlight Registers Fix:** macOS 13.4+ inlined register calls are handled via `enable-backlight-registers-alternative-fix` (`<01000000>`) and `-igfxblt` in `boot-args`.
 * **Keyboard Hotkeys:** `BrightnessKeys.kext` handles `Fn + F7` / `Fn + F8` natively.
