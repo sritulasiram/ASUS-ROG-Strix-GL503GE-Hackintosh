@@ -6,7 +6,7 @@
 [![Theme](https://img.shields.io/badge/OpenCanopy-Blackosx%20BsxM1-9cf.svg?style=flat-square)](https://github.com/blackosx/OpenCanopy-Icons)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-An optimized, production-ready OpenCore EFI configuration for running macOS (**Sonoma 14.x**, **Sequoia 15.x**, and **Tahoe 16.x**) on the **ASUS ROG Strix GL503GE** gaming laptop.
+An optimized, production-ready OpenCore EFI configuration for running macOS (**Sonoma 14.x**, **Sequoia 15.x**, and **Tahoe 26.x**) on the **ASUS ROG Strix GL503GE** gaming laptop.
 
 Built following the [Dortania OpenCore Install Guide](https://dortania.github.io/OpenCore-Install-Guide/), assisted by [OpenCore Simplify](https://github.com/lzhoang2801/OC-Simplify), and powered by [Acidanthera](https://github.com/acidanthera) kexts and drivers.
 
@@ -40,7 +40,7 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
 | **dGPU** | NVIDIA GeForce GTX 1050 Ti (Mobile) | ❌ Disabled | Disabled via `SSDT-Disable_GPU_PEG0.aml` to save power and prevent heat |
 | **RAM** | 16 GB DDR4 2666 MHz | ✅ Working | Dual-channel detected & operational |
 | **Storage** | Samsung 980 500GB NVMe SSD | ✅ Working | Native APFS trim (`SetApfsTrimTimeout = 0`), power management via `NVMeFix.kext` |
-| **Audio** | Realtek ALC (ALC295/294) | ✅ Working | `layout-id: 14` (`alcid=14`), speakers, 3.5mm combo jack, HDMI audio |
+| **Audio** | Realtek ALC (ALC295/294) | ✅ Working | `layout-id: 14` (`<data>DgAAAA==</data>`, `alcid=14`), internal speakers, internal mic, 3.5mm combo jack, HDMI audio (OCLP-Mod root patch on macOS 26 Tahoe) |
 | **Boot Chime** | UEFI Audio Output | ✅ Working | Native startup chime via `AudioDxe.efi` (`OCEFIAudio_VoiceOver_Boot.wav`) |
 | **Ethernet** | Realtek RTL8111 Gigabit Ethernet | ✅ Working | Handled by `RealtekRTL8111.kext` |
 | **Wi-Fi** | Intel AX210 / Wireless-AC 9560 | ✅ Working | Supported via **OCLP-Mod** root patching (`IOSkywalkFamily` + `AMFIPass`) |
@@ -253,13 +253,14 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 3. Copy the entire `EFI` folder from this repository to the root of the EFI partition.
 4. Reboot, enter BIOS (hold `F2` at startup), verify BIOS settings above, and boot from USB (`F8` or `Esc`).
 
-### 3. Post-Installation: Intel Wi-Fi via OCLP-Mod
-On macOS Sonoma (14) and Sequoia (15):
+### 3. Post-Installation: Intel Wi-Fi & macOS 26 Audio via OCLP-Mod
+On macOS Sonoma (14), Sequoia (15), and Tahoe (26):
 1. Complete the macOS setup assistant.
 2. Download **[OCLP-Mod (OpenCore-Legacy-Patcher Mod)](https://github.com/lzhoang2801/OpenCore-Legacy-Patcher/releases)**.
 3. Launch OCLP-Mod and click **Post-Install Root Patch**.
-4. Install the **Networking: Modern Wireless** patch set.
-5. Reboot your laptop. Native Wi-Fi management and Control Center networking will now be active.
+4. Install the **Networking: Modern Wireless** patch set (for Intel Wi-Fi on Sonoma/Sequoia/Tahoe) and **Modern Audio / AppleHDA** patch set (required on macOS 26 Tahoe because Apple dropped native `AppleHDA.kext`).
+5. Reboot your laptop. Native Wi-Fi management, Control Center networking, and full Realtek ALC295 audio (speakers, headphones, mic) will now be active.
+> **Note on OS Updates:** Whenever you update macOS (e.g. updating to 26.7), Apple replaces the root snapshot. Simply launch OCLP-Mod and re-run **Post-Install Root Patch** to restore both patches.
 
 ### 4. Post-Installation: Helper Scripts
 The repository includes automated helper scripts under `scripts/`:

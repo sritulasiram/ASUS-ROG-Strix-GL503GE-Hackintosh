@@ -38,12 +38,28 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
 
 ### Issue: No sound from speakers, or headphone jack not switching automatically.
 * **Codec:** Realtek ALC295 / ALC294
-* **Current Layout:** `alcid=14`
+* **Current Layout:** `alcid=14` (`layout-id` & `alc-layout-id: <data>DgAAAA==</data>`)
 * **Alternative Layouts to Test:**
   * Layout `13`, `14`, `15`, `21`, `22`, `28`
   * To test another layout, modify the `alcid=XX` argument in `config.plist` under `NVRAM > 7C436110-AB2A-4BBB-A880-FE41995C9F82 > boot-args`.
+
+### 🚨 Critical Note for macOS 26.x (Tahoe) Updates:
+* **Why Audio Breaks After macOS 26.x Updates (e.g., 26.7):**
+  1. **Apple Dropped AppleHDA:** In macOS 26 (Tahoe), Apple permanently removed `AppleHDA.kext` from the operating system because official Macs now route audio exclusively through T2/Apple Silicon chips. Because `AppleALC.kext` is a runtime patcher for `AppleHDA`, it cannot attach without `AppleHDA.kext` present in the OS.
+  2. **Root Snapshot Overwrite:** Applying any macOS update (such as 26.7) replaces the root volume with Apple's newly sealed APFS update snapshot (`com.apple.os.update-...`), wiping all previous root patches.
+  3. **DeviceProperties Data Type:** `layout-id` must be injected as 4-byte OSData (`<data>DgAAAA==</data>`), not integer, so `OSDynamicCast(OSData, ...)` in `AppleALC` succeeds.
+* **Fix Procedure After macOS 26 Update:**
+  1. Deploy the updated EFI with `layout-id` & `alc-layout-id` data type fixes:
+     ```bash
+     sudo ./scripts/deploy_to_esp.sh
+     ```
+  2. Download/open **[OCLP-Mod (OpenCore-Legacy-Patcher Mod)](https://github.com/lzhoang2801/OpenCore-Legacy-Patcher/releases)**.
+  3. Click **Post-Install Root Patch**.
+  4. Ensure both **Audio (AppleHDA)** and **Networking (Modern Wireless)** patches are applied.
+  5. Reboot the laptop. Once booted, `AppleALC` will bind to the re-injected `AppleHDA` and restore full internal speakers, 3.5mm combo jack, and internal microphone.
+
 * **Headphone Jack Auto-Switching:** If the 3.5mm jack does not detect plugin/unplug events, install [ALCPlugFix-Swift](https://github.com/black-dragon-x/ALCPlugFix-Swift) to monitor jack status.
-* **Digital USB-C Alternative (Zero Setup):** The laptop's USB-C port is mapped as Type 10 (`HS09` / `HS11`) in `UTBDefault.kext`. Connecting **Apple USB-C EarPods** or USB-C DAC dongles bypasses the analog ALC295 codec completely, providing native 24-bit digital audio, inline mic, and volume controls out of the box.
+* **Digital USB-C Alternative (Zero Setup):** The laptop's USB-C port is mapped as Type 10 (`HS09` / `HS11`) in `UTBDefault.kext`. Connecting **Apple USB-C EarPods** or USB-C DAC dongles bypasses the analog ALC295 codec completely, providing native 24-bit digital audio, inline mic, and volume controls out of the box without requiring any root patches.
 
 ---
 
