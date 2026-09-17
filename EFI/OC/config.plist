@@ -372,11 +372,17 @@
                     <data>CQClPg==</data>
                     <key>agdpmod</key>
                     <string>vit9696</string>
+                    <key>complete-modeset</key>
+                    <data>AQAAAA==</data>
+                    <key>complete-modeset-framebuffers</key>
+                    <data>AAAAAAAAAAE=</data>
                     <key>enable-backlight-registers-alternative-fix</key>
                     <data>AQAAAA==</data>
                     <key>enable-backlight-smoother</key>
                     <data>AQAAAA==</data>
                     <key>enable-hdmi20</key>
+                    <data>AQAAAA==</data>
+                    <key>force-online</key>
                     <data>AQAAAA==</data>
                     <key>force-online-framebuffers</key>
                     <data>AAAAAAAAAAE=</data>
@@ -402,8 +408,6 @@
                     <data>AAAwAQ==</data>
                     <key>framebuffer-unifiedmem</key>
                     <data>AAAAgA==</data>
-                    <key>igfxfw</key>
-                    <data>AgAAAA==</data>
                     <key>model</key>
                     <string>Intel UHD Graphics 630</string>
                 </dict>
@@ -1265,7 +1269,7 @@
                     <key>bluetoothInternalControllerInfo</key>
                     <data>AAAAAAAAAAAAAAAAAAA=</data>
                     <key>boot-args</key>
-                    <string>debug=0x100 alcid=14 keepsyms=1 -amfipassbeta -igfxblt -igfxbls igfxfw=2 -vi2c-force-polling darkwake=0 -btlfxallowanyaddr -btlfxboardid</string>
+                    <string>debug=0x100 alcid=14 keepsyms=1 -amfipassbeta -igfxblt -igfxbls -vi2c-force-polling darkwake=0 -btlfxallowanyaddr -btlfxboardid</string>
                     <key>csr-active-config</key>
                     <data>AwoAAA==</data>
                     <key>prev-lang:kbd</key>
