@@ -39,6 +39,7 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
   * If on specific BIOS revisions the trackpad does not respond without `-vi2c-force-polling`, the OEM DSDT is returning an APIC interrupt or `0x0000` pin in `_CRS`.
   * In that case, add the `TPD0 _CRS to XCRS Rename` patch and inject `SSDT-TPD0.aml` with the explicit Cannon Lake PCH GPIO Pin (`0x68` or `0x55`).
   * Avoid using `-vi2c-force-polling` permanently, as polling burns CPU cycles, degrades battery life, and causes the 2–3 minute watchdog freeze.
+  * *(Verified working natively on ASUS ROG Strix GL503GE BIOS 319 without extra pinning SSDT).*
 * **Trackpad Preferences:** Enable **Tap to Click** in *System Settings > Trackpad*.
 
 ---
@@ -50,7 +51,7 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
 * **Current Layout:** `alcid=14` (`layout-id` & `alc-layout-id: <data>DgAAAA==</data>`)
 * **Alternative Layouts to Test:**
   * Layout `13`, `14`, `15`, `21`, `22`, `28`
-  * To test another layout, modify the `alcid=XX` argument in `config.plist` under `NVRAM > 7C436110-AB2A-4BBB-A880-FE41995C9F82 > boot-args`.
+  * **Important:** In `AppleALC`, entries under `DeviceProperties` take precedence over `alcid=XX` in `boot-args`. If testing an alternative layout via `alcid=XX` in `boot-args`, you must also update (or temporarily remove) `layout-id` and `alc-layout-id` under `DeviceProperties > PciRoot(0x0)/Pci(0x1f,0x3)` in `config.plist`.
 
 ### 🚨 Critical Note for macOS 26.x (Tahoe) Updates:
 * **Why Audio Breaks After macOS 26.x Updates (e.g., 26.7):**
@@ -83,7 +84,7 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
      * `AMFIPass.kext`
      * `AirportItlwm.kext`
   2. Verify boot-args contains `-amfipassbeta`.
-  3. Verify `csr-active-config` is set to `03080000` (`<data>AwoAAA==</data>`).
+  3. Verify `csr-active-config` is set to `030A0000` (`<data>AwoAAA==</data>`).
   4. Boot into macOS, download **[OCLP-Mod](https://github.com/lzhoang2801/OpenCore-Legacy-Patcher/releases)**, and click **Post-Install Root Patch**.
   5. Select **Networking: Modern Wireless** to patch the Intel Wi-Fi drivers into the system snapshot.
   6. Reboot when prompted.
@@ -91,7 +92,7 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
 ### Issue: Bluetooth fails to turn on or toggle.
 * The EFI includes `IntelBluetoothFirmware.kext` (v2.5.1), `IntelBTPatcher.kext` (v2.5.1), and `BlueToolFixup.kext`.
 * **Important:** Do **not** use `IntelBluetoothInjector.kext` on macOS Monterey and later (it was replaced by `BlueToolFixup.kext`).
-* On macOS Sequoia (15.x) and Tahoe (16.x), `IntelBTPatcher.kext` v2.5.1+ is required to prepare and complete HCI memory descriptors in IOKit; earlier versions fail to initialize or toggle Bluetooth.
+* On macOS Sequoia (15.x) and Tahoe (26.x), `IntelBTPatcher.kext` v2.5.1+ is required to prepare and complete HCI memory descriptors in IOKit; earlier versions fail to initialize or toggle Bluetooth.
 
 ---
 
@@ -127,11 +128,17 @@ sudo pmset -a proximitywake 0
 sudo rm -f /var/vm/sleepimage
 ```
 
-### Checking Wake Reasons:
-To inspect what woke the laptop from sleep:
+### Checking Sleep & Wake Logs:
+To inspect recent sleep transitions and wake events:
 ```bash
-pmset -g log | grep -e "Wake.*due to"
+pmset -g log | grep -E "(Entering Sleep|Wake from)" | tail -n 10
 ```
+Expected healthy output:
+```text
+Entering Sleep state due to 'Software Sleep pid=...': Using ...
+Wake from Normal Sleep [CDNVA] : due to PWRB/UserActivity Assertion
+```
+*(Notice `[CDNVA]` indicates all Clamshell, Display, Network, Video, and Audio subsystems resumed cleanly).*
 
 ---
 
@@ -217,7 +224,7 @@ This installs a lightweight LaunchAgent at `~/Library/LaunchAgents/com.local.Key
 
 * **Hardware Controller:** Realtek RTS5229 PCIe Card Reader (`0x10EC:0x5229`).
 * **Active Driver:** `Sinetek-rtsx.kext` (v9.0.0).
-* **Why not `RealtekCardReader.kext` on macOS Tahoe (16.x)?:**
+* **Why not `RealtekCardReader.kext` on macOS Tahoe (26.x)?:**
   * While `RealtekCardReader.kext` by 0xFireWolf offers native hotplugging on older macOS releases, it hooks into private kernel structures in `IOStorageFamily` and `IOPCIFamily`.
   * In **macOS Tahoe (Darwin 25.x)**, Apple refactored IOKit memory descriptors and internal storage APIs. Using `RealtekCardReader.kext` on macOS Tahoe triggers an **early kernel panic during PCIe probe, causing the system to fail to boot**.
 * **Best Practices with `Sinetek-rtsx.kext`:**
