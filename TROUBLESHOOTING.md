@@ -23,14 +23,23 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
 
 ## 2. 🖲️ Trackpad (I2C) Troubleshooting
 
-### Issue: Trackpad is unresponsive, laggy, or gestures don't work.
-* **Current Implementation:** The EFI uses `VoodooI2C.kext` + `VoodooI2CHID.kext` with the boot argument `-vi2c-force-polling`.
-* **Fixes & Checks:**
-  * **Polling Mode:** The boot arg `-vi2c-force-polling` ensures compatibility if GPIO interrupts are not perfectly aligned.
-  * **GPIO Pinning (Advanced):** If you prefer native GPIO interrupt mode for lower CPU wakeups:
-    1. Ensure `SSDT-GPI0.aml` is active.
-    2. Check your DSDT `_CRS` method for the `ETPD` or `TPD0` device.
-  * **Settings:** Enable **Tap to Click** in *System Settings > Trackpad*.
+### Issue: Trackpad freezes for 2–3 minutes or cursor stops moving intermittently.
+* **Root Cause of 2–3 Min Freeze (Polling Mode):** Using the `-vi2c-force-polling` boot argument forces VoodooI2C to poll the Intel DesignWare I2C0 bus (`pci8086,a368`) continuously at 60–100Hz. During CPU frequency scaling, Intel C-state shifts, or rapid multitouch gestures, an I2C transaction desynchronizes and deadlocks the controller FIFO in an abort state (`TX_ABRT` / bus busy). Without hardware interrupts to service the FIFO, the cursor remains stuck until the hardware controller watchdog timer expires (~120–180s, exactly 2–3 minutes) and forcibly resets the I2C bus.
+* **Current Implementation:** The EFI runs `VoodooI2C.kext` + `VoodooI2CHID.kext` in **Native GPIO Interrupt Mode** via `VoodooGPIOCannonLakeH.kext` matching `INT3450` (`GPI0`), with `SSDT-GPI0.aml` and `SSDT-XOSI.aml`.
+* **Verification Command:**
+  Run in Terminal to verify that the trackpad is operating with direct hardware interrupts:
+  ```bash
+  ioreg -rc VoodooI2CDeviceNub -n "TPD0" | grep -i "Interrupt Mode"
+  ```
+  Expected output:
+  ```text
+  "Interrupt Mode" = "Interrupt"
+  ```
+* **Fallback / GPIO Pinning (If Device is Unpinned):**
+  * If on specific BIOS revisions the trackpad does not respond without `-vi2c-force-polling`, the OEM DSDT is returning an APIC interrupt or `0x0000` pin in `_CRS`.
+  * In that case, add the `TPD0 _CRS to XCRS Rename` patch and inject `SSDT-TPD0.aml` with the explicit Cannon Lake PCH GPIO Pin (`0x68` or `0x55`).
+  * Avoid using `-vi2c-force-polling` permanently, as polling burns CPU cycles, degrades battery life, and causes the 2–3 minute watchdog freeze.
+* **Trackpad Preferences:** Enable **Tap to Click** in *System Settings > Trackpad*.
 
 ---
 
