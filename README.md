@@ -106,7 +106,7 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 │   ├── BOOT/
 │   │   └── BOOTx64.efi         # OpenCore initial UEFI bootloader
 │   └── OC/
-│       ├── ACPI/               # 11 optimized DSDT/SSDT patches
+│       ├── ACPI/               # 12 optimized DSDT/SSDT patches
 │       ├── Drivers/            # UEFI drivers (AudioDxe, OpenCanopy, OpenRuntime, etc.)
 │       ├── Kexts/              # 26 kernel extensions for hardware enablement
 │       ├── Resources/          # Audio chimes, fonts, OpenCanopy themes & labels
@@ -247,7 +247,11 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 ### 2. Prepare USB Installer
 1. Create a bootable macOS USB installer using standard Apple tools:
    ```bash
+   # For macOS Sequoia (15.x):
    sudo /Applications/Install\ macOS\ Sequoia.app/Contents/Resources/createinstallmedia --volume /Volumes/MyUSB
+
+   # For macOS Tahoe (26.x):
+   sudo /Applications/Install\ macOS\ Tahoe.app/Contents/Resources/createinstallmedia --volume /Volumes/MyUSB
    ```
 2. Mount the EFI partition of your USB drive (using `MountEFI` or `diskutil mount diskXs1`).
 3. Copy the entire `EFI` folder from this repository to the root of the EFI partition.
@@ -293,7 +297,7 @@ On ASUS ROG laptops with Aura RGB keyboards, the backlight is driven over USB by
 
 For additional troubleshooting and optimization guides, see [**TROUBLESHOOTING.md**](TROUBLESHOOTING.md):
 * **iCloud, iMessage, and FaceTime Activation**
-* **Touchpad Polling vs GPIO Pinning Tuning**
+* **Trackpad (I2C) Native GPIO Interrupt Mode & 2–3 Min Freeze Resolution**
 * **Audio Headphone Auto-Switching**
 * **Sleep / Wake Optimization & Hibernation Disabling**
 * **USB Port Customization**
