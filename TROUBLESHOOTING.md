@@ -33,7 +33,7 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
   ```
   Expected output:
   ```text
-  "Interrupt Mode" = "Interrupt"
+  "Interrupt Mode" = "GPIO"
   ```
 * **Fallback / GPIO Pinning (If Device is Unpinned):**
   * If on specific BIOS revisions the trackpad does not respond without `-vi2c-force-polling`, the OEM DSDT is returning an APIC interrupt or `0x0000` pin in `_CRS`.
