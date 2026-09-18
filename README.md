@@ -45,7 +45,7 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
 | **Ethernet** | Realtek RTL8111 Gigabit Ethernet | ✅ Working | Handled by `RealtekRTL8111.kext` |
 | **Wi-Fi** | Intel AX210 / Wireless-AC 9560 | ✅ Working | Supported via **OCLP-Mod** root patching (`IOSkywalkFamily` + `AMFIPass`) |
 | **Bluetooth** | Intel Wireless Bluetooth | ✅ Working | Internal USB Port 14 (`HS14`), `IntelBluetoothFirmware` + `IntelBTPatcher` v2.5.1 + `BlueToolFixup` |
-| **Trackpad** | ASUS I2C Multi-Touch Trackpad | ✅ Working | Smooth multi-touch gestures via `VoodooI2C` + `VoodooI2CHID` (`-vi2c-force-polling`) |
+| **Trackpad** | ASUS I2C Multi-Touch Trackpad | ✅ Working | Smooth multi-touch gestures via `VoodooI2C` + `VoodooI2CHID` (Native GPIO interrupt mode) |
 | **Keyboard** | Built-in Backlit Keyboard | ✅ Working | Function row keys (F1–F12) mapped via `./scripts/setup_function_keys.sh` |
 | **RGB Lighting** | Aura 4-Zone RGB Lighting | ✅ Supported | Brightness (`Fn + Up/Down`) & effects controlled via [ROG Gaming Center for macOS](https://github.com/sritulasiram/rog-gaming-center-hackintosh) |
 | **Webcam** | Built-in USB HD Camera | ✅ Working | Native macOS UVC support |
@@ -128,14 +128,14 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 * **Target SMBIOS:** `MacBookPro16,4`
 * **Boot Arguments:**
   ```text
-  debug=0x100 alcid=14 keepsyms=1 -amfipassbeta -igfxblt -vi2c-force-polling darkwake=0
+  debug=0x100 alcid=14 keepsyms=1 -amfipassbeta -igfxblr darkwake=0 -btlfxallowanyaddr -btlfxboardid
   ```
 * **Boot Argument Breakdown:**
-  * `alcid=14` — Selects AppleALC layout-id 14 for the Realtek ALC295 codec.
-  * `-igfxblt` — Fixes display backlight level initialization at boot.
-  * `-vi2c-force-polling` — Forces polling mode on VoodooI2C for reliable touchpad input.
+  * `alcid=14` — Selects AppleALC layout-id 14 for the Realtek ALC295/294 codec.
+  * `-igfxblr` — Restores instantaneous backlight power at display driver attach without black screen delays.
   * `-amfipassbeta` — Allows AMFIPass to work on modern beta/new macOS versions.
   * `darkwake=0` — Disables maintenance darkwake cycles for rock-solid sleep stability.
+  * `-btlfxallowanyaddr -btlfxboardid` — Bluetooth firmware upload compatibility flags for BlueToolFixup.
   * `debug=0x100 keepsyms=1` — Retains kernel symbols and prevents auto-reboot on kernel panic.
 
 ### 🎨 Graphical Boot Picker (OpenCanopy)
