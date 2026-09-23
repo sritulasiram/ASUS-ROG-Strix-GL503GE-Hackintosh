@@ -108,7 +108,7 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 │   └── OC/
 │       ├── ACPI/               # 12 optimized DSDT/SSDT patches
 │       ├── Drivers/            # UEFI drivers (AudioDxe, OpenCanopy, OpenRuntime, etc.)
-│       ├── Kexts/              # 26 kernel extensions for hardware enablement
+│       ├── Kexts/              # 27 kernel extensions for hardware enablement
 │       ├── Resources/          # Audio chimes, fonts, OpenCanopy themes & labels
 │       │   ├── Audio/          # Startup chime WAV files
 │       │   ├── Font/           # Boot picker typography
@@ -167,21 +167,22 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 ### 📦 Kernel Extensions (Kexts)
 
 <details open>
-<summary><b>Full Kext List (26 kexts)</b></summary>
+<summary><b>Full Kext List (27 kexts)</b></summary>
 
 | Kext | Purpose |
 | :--- | :--- |
 | `Lilu.kext` | Core kext patcher & hooking engine (Essential) |
 | `VirtualSMC.kext` | Advanced Apple SMC chip emulator |
+| `CPUFriend.kext` | Coffee Lake CPU frequency vector & power management tuning |
 | `SMCProcessor.kext` | Real-time CPU temperature and core monitoring |
 | `SMCSuperIO.kext` | Fan speed and hardware sensor telemetry |
 | `SMCBatteryManager.kext` | ASUS laptop battery percentage and charging state |
-| `SMCLightSensor.kext` | Ambient light sensor emulation |
+| `ECEnabler.kext` | Fixes multi-cell battery EC field reads for 1% granularity |
 | `WhateverGreen.kext` | Intel UHD 630 framebuffer patching and HDMI 2.0 enablement |
 | `AppleALC.kext` | Realtek ALC295 native audio patcher |
 | `BrightnessKeys.kext` | Maps ASUS keyboard brightness function keys |
-| `RealtekRTL8111.kext` | Realtek Gigabit Ethernet driver |
-| `AirportItlwm.kext` | Intel Wi-Fi driver |
+| `RealtekRTL8111.kext` | Realtek Gigabit Ethernet driver (v3.0.4, Tahoe-ready) |
+| `AirportItlwm.kext` | Intel Wi-Fi driver (Sonoma/Sequoia; Tahoe via OCLP-Mod root patch) |
 | `IOSkywalkFamily.kext` | Modern wireless networking compatibility framework |
 | `IO80211FamilyLegacy.kext` | Legacy wireless support for modern macOS |
 | `AMFIPass.kext` | AppleMobileFileIntegrity compatibility shim |
