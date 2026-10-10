@@ -51,6 +51,7 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
 | **Webcam** | Built-in USB HD Camera | ✅ Working | Native macOS UVC support |
 | **Card Reader** | Realtek RTS5229 PCIe SD Card Reader | 🔄 Supported | Handled by `Sinetek-rtsx.kext` (macOS Tahoe compatible; insert before boot/wake) |
 | **Battery Status** | ASUS Smart Battery | ✅ Working | Real-time percentage & AC health via `SMCBatteryManager.kext` |
+| **Fans & Cooling** | Dual 12V Blower Fans (CPU & GPU) | ✅ Working | ACPI hardware mode switching via `SSDT-FAN.aml` (`Fn + F5` toggles Normal / Overboost / Silent); autonomous hardware EC thermal control; AppleSMC die telemetry via `SMCProcessor.kext` |
 | **Display** | 15.6" Full HD 120Hz Wide-Gamut (94% NTSC) Display | ✅ Working | Native brightness slider, 120Hz refresh rate, MacBook Pro Retina HiDPI scaling, native 'Built-in Retina Display' profile |
 | **HDMI Output** | HDMI 2.0 Port | ✅ Working | 4K video & audio output |
 | **Sleep / Wake** | S3 Sleep State | ✅ Working | Sleep, lid close, and wake operational (`SSDT-GPRW`, `fix_sleep_pmset.sh`) |
@@ -120,6 +121,7 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 │   ├── deploy_to_esp.sh        # Synchronize EFI to boot ESP partition with backup
 │   ├── fix_sleep_pmset.sh      # Optimize macOS sleep/wake & power management settings
 │   ├── reset_bluetooth.sh      # Reset Bluetooth daemon, stale caches & controller state
+│   ├── rog_thermal_monitor.sh  # Live AppleSMC CPU die & per-core thermal telemetry monitor
 │   ├── set_color_profile.py    # Display wide-gamut / sRGB / Display P3 profile switcher
 │   ├── setup_function_keys.sh  # Map function keys (F1-F12) to native macOS media keys
 │   └── setup_native_macbook_display.sh # Native MacBook Pro display settings & HiDPI scaling
@@ -171,6 +173,7 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 * `SSDT-SBUS.aml` — Fixes System Management Bus (SMBus) recognition.
 * `SSDT-USBX.aml` — Injects proper USB power properties (USB sleep/wake current).
 * `SSDT-XOSI.aml` — Emulates Windows 10/11 environment for ASUS ACPI tables.
+* `SSDT-FAN.aml` — ASUS Fan Boost hotpatch (cycles Normal / Overboost / Silent on `Fn + F5`).
 
 ### 📦 Kernel Extensions (Kexts)
 
@@ -181,9 +184,9 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 | :--- | :--- |
 | `Lilu.kext` | Core kext patcher & hooking engine (Essential) |
 | `VirtualSMC.kext` | Advanced Apple SMC chip emulator |
-| `CPUFriend.kext` | Coffee Lake CPU frequency vector & power management tuning |
+| `CPUFriend.kext` | Coffee Lake CPU frequency tuning *(Disabled by default; enable if custom data provider supplied)* |
 | `SMCProcessor.kext` | Real-time CPU temperature and core monitoring |
-| `SMCSuperIO.kext` | Fan speed and hardware sensor telemetry |
+| `SMCSuperIO.kext` | Fan speed and LPC hardware sensor telemetry *(Disabled on laptop; EC handles fans)* |
 | `SMCBatteryManager.kext` | ASUS laptop battery percentage and charging state |
 | `ECEnabler.kext` | Fixes multi-cell battery EC field reads for 1% granularity |
 | `WhateverGreen.kext` | Intel UHD 630 framebuffer patching and HDMI 2.0 enablement |
@@ -210,12 +213,12 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 </details>
 
 ### 🔌 UEFI Drivers
-* `AudioDxe.efi` — UEFI audio protocol driver for boot chime sound.
-* `OpenCanopy.efi` — High-resolution graphical boot menu interface.
-* `OpenRuntime.efi` — Mandatory runtime memory management driver for OpenCore.
 * `HfsPlus.efi` — High-performance HFS+ file system driver.
-* `apfs_aligned.efi` — APFS file system driver.
+* `OpenRuntime.efi` — Mandatory runtime memory management driver for OpenCore.
 * `ResetNvramEntry.efi` — Adds convenient NVRAM reset option to boot menu.
+* `OpenCanopy.efi` — High-resolution graphical boot menu interface.
+* `AudioDxe.efi` — UEFI audio protocol driver for boot chime sound.
+*(Note: APFS containers are handled natively via OpenCore's built-in `EnableJumpstart = true`).*
 
 ---
 
@@ -308,8 +311,25 @@ The repository includes automated helper scripts under `scripts/`:
   ```bash
   sudo ./scripts/deploy_to_esp.sh
   ```
+* **Real-Time Thermal & Die Telemetry:** Samples live AppleSMC hardware sensors (package die and 6 CPU cores) to check thermal dissipation:
+  ```bash
+  ./scripts/rog_thermal_monitor.sh
+  ```
 
-### 5. Keyboard Backlight & Telemetry: ROG Gaming Center
+### 5. Fan Control & Hardware Thermal Architecture
+On ASUS ROG laptops, the dual 12V blowers are wired directly to the **ITE IT8987 Embedded Controller (EC)** rather than an Apple SMC chip.
+
+* **Hardware Fan Boost Hotkey (`Fn + F5`):**
+  Handled by pure ACPI via [`SSDT-FAN.aml`](EFI/OC/ACPI/SSDT-FAN.aml). Intercepts the EC `_QAE` event and dispatches the native ASUS WMI Device Set command (`\_SB.ATKD.WMNB(0x53564544, 0x00110018, FMOD)`) to cycle hardware thermal profiles:
+  * **Normal / Balanced (`0x00`):** Factory automatic EC thermal curve based on CPU die temperature.
+  * **Overboost Turbo (`0x01`):** Forces dual blowers to ~5,000+ RPM maximum cooling.
+  * **Silent Quiet (`0x02`):** Acoustic-prioritized low-RPM profile for quiet workflows.
+* **Autonomous Hardware Cooling:**
+  The hardware EC continuously reads CPU package temperatures via Intel PECI and dynamically ramps blower speeds under load (reducing temperatures by 10 °C+ in seconds). Combined with `SSDT-Disable_GPU_PEG0.aml` cutting 75W of NVIDIA heat, the system runs cooler and quieter than on Windows.
+* **Why macOS Menu Bar Apps Report 0 RPM:**
+  Standard macOS apps (Stats, Macs Fan Control) query Apple-proprietary SMC keys (`FNum = 0` on PC hardware). `AsusSMC.kext` is unsupported and causes kernel probe panics on macOS Tahoe (Darwin 25/26). In macOS, cooling and throttling are governed strictly by **CPU Package & Die Temperature (`TC0P` / `TC0D`)**, which is 100% natively readable via `SMCProcessor.kext`.
+
+### 6. Keyboard Backlight & Telemetry: ROG Gaming Center
 On ASUS ROG laptops with Aura RGB keyboards, the backlight is driven over USB by an internal **ITE 8910** controller (`0x0B05:0x1869`), not by motherboard ACPI.
 * Download and install **[ROG Gaming Center for macOS](https://github.com/sritulasiram/rog-gaming-center-hackintosh)**.
 * **Features:**

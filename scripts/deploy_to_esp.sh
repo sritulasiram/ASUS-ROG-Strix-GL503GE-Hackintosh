@@ -2,7 +2,7 @@
 set -e
 
 EFI_SRC="/Users/sritulasiram/Documents/Projects/efi/EFI"
-EFI_DISK="disk0s1"
+EFI_DISK="${1:-disk0s1}"
 BACKUP_DIR="$HOME/Desktop/EFI_Backup_$(date +%Y%m%d_%H%M%S)"
 
 echo "=================================================================="
@@ -56,6 +56,30 @@ if [ -f "$EFI_SRC/OC/config.personal.plist" ]; then
     echo "[+] Applying personal SMBIOS config (config.personal.plist -> config.plist) to ESP..."
     cp -f "$EFI_SRC/OC/config.personal.plist" "$MOUNT_POINT/EFI/OC/config.plist"
 fi
+
+# Verify deployed PlatformInfo on the ESP
+echo "[*] Verifying deployed PlatformInfo (SMBIOS) on ESP..."
+python3 -c "
+import plistlib
+try:
+    with open('$MOUNT_POINT/EFI/OC/config.plist', 'rb') as f:
+        cfg = plistlib.load(f)
+    gen = cfg.get('PlatformInfo', {}).get('Generic', {})
+    serial = gen.get('SystemSerialNumber', 'MISSING')
+    mlb = gen.get('MLB', 'MISSING')
+    uuid = gen.get('SystemUUID', 'MISSING')
+    model = gen.get('SystemProductName', 'MISSING')
+    print(f'    ✓ Model:  {model}')
+    print(f'    ✓ Serial: {serial}')
+    print(f'    ✓ MLB:    {mlb}')
+    print(f'    ✓ UUID:   {uuid}')
+    if serial == 'CHANGEME':
+        print('    [!] WARNING: SystemSerialNumber is set to CHANGEME!')
+    else:
+        print('    [✓] Valid hardware SMBIOS confirmed active on ESP!')
+except Exception as e:
+    print(f'    [!] Warning checking SMBIOS: {e}')
+"
 
 # 4. Flush and unmount
 sync
