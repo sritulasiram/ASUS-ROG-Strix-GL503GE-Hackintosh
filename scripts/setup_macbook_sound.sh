@@ -22,22 +22,21 @@ echo -e "${BOLD}${CYAN}======================================================${R
 echo -e "${BOLD}[1/4] Auditing CoreAudio & Realtek ALC295 Hardware...${RESET}"
 
 AUDIO_OUTPUT=$(system_profiler SPAudioDataType 2>/dev/null || true)
-if echo "$AUDIO_OUTPUT" | grep -q "Internal Speakers"; then
-    echo -e "  ${GREEN}✓${RESET} Built-in Output: ${BOLD}Internal Speakers (2-Channel Stereo, 48 kHz)${RESET}"
+if grep -q "Internal Speakers" <<<"$AUDIO_OUTPUT"; then
+    echo -e "  ${GREEN}✓${RESET} Built-in Output: ${BOLD}Internal Speakers${RESET}"
 else
     echo -e "  ${RED}✗${RESET} Internal Speakers not detected by CoreAudio! Check AppleALC."
 fi
 
-if echo "$AUDIO_OUTPUT" | grep -q "Internal Microphone"; then
-    echo -e "  ${GREEN}✓${RESET} Built-in Input:  ${BOLD}Internal Microphone (2-Channel, 48 kHz)${RESET}"
+if grep -q "Internal Microphone" <<<"$AUDIO_OUTPUT"; then
+    echo -e "  ${GREEN}✓${RESET} Built-in Input:  ${BOLD}Internal Microphone${RESET}"
 else
     echo -e "  ${YELLOW}!${RESET} Internal Microphone not detected."
 fi
 
 CODEC_CHECK=$(ioreg -rxn "AppleHDACodecGeneric" 2>/dev/null || true)
-if echo "$CODEC_CHECK" | grep -q "0x10ec0295"; then
+if grep -q "0x10ec0295" <<<"$CODEC_CHECK"; then
     echo -e "  ${GREEN}✓${RESET} Audio Codec:     ${BOLD}Realtek ALC295 (Vendor ID: 0x10EC0295)${RESET}"
-    echo -e "  ${GREEN}✓${RESET} Layout Engine:   ${BOLD}AppleALC Layout 14 (Asus UX430UA / ROG profile)${RESET}"
 else
     echo -e "  ${YELLOW}!${RESET} AppleHDACodecGeneric did not report 0x10ec0295."
 fi

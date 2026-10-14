@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
-EFI_SRC="/Users/sritulasiram/Documents/Projects/efi/EFI"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+EFI_SRC="${EFI_SRC:-$SCRIPT_DIR/../EFI}"
 EFI_DISK="${1:-disk0s1}"
 BACKUP_DIR="$HOME/Desktop/EFI_Backup_$(date +%Y%m%d_%H%M%S)"
 
@@ -18,6 +19,19 @@ fi
 # Ensure target source exists
 if [ ! -d "$EFI_SRC" ]; then
     echo "[!] Error: Source EFI directory not found at $EFI_SRC"
+    exit 1
+fi
+
+# Refuse to deploy placeholder SMBIOS: it would overwrite a working ESP config
+if [ ! -f "$EFI_SRC/OC/config.personal.plist" ]; then
+    echo "[!] $EFI_SRC/OC/config.personal.plist not found."
+    echo "    Copy config.plist to config.personal.plist and fill in PlatformInfo > Generic first."
+    exit 1
+fi
+
+# Sanity check: target must be an EFI System Partition
+if ! diskutil info "/dev/${EFI_DISK}" | grep -q -E "Partition Type:[[:space:]]+EFI"; then
+    echo "[!] /dev/${EFI_DISK} is not an EFI System Partition. Pass the correct one: sudo $0 diskXsY"
     exit 1
 fi
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# ASUS ROG Strix GL503GE - Real-Time Hardware Thermal & Fan Telemetry
+# ASUS ROG Strix GL503GE - Real-Time Hardware Thermal Telemetry
 # ==============================================================================
 # Samples live AppleSMC hardware sensors (Package TC0P, Die TC0D, and Cores TC1C-TC6C)
 # to provide accurate thermal metrics on macOS Tahoe (Darwin 25/26).
@@ -15,10 +15,11 @@ YELLOW="\033[1;33m"
 RED="\033[0;31m"
 RESET="\033[0m"
 
-TMP_BIN="/tmp/read_smc_$$"
+WORK_DIR="$(mktemp -d)"
+TMP_BIN="${WORK_DIR}/read_smc"
 
 cleanup() {
-    rm -f "${TMP_BIN}" "${TMP_BIN}.c" 2>/dev/null || true
+    rm -rf "${WORK_DIR}" 2>/dev/null || true
 }
 trap cleanup EXIT
 
@@ -91,14 +92,21 @@ int main(int argc, char **argv) {
 }
 EOF
 
-clang -O2 -framework IOKit "${TMP_BIN}.c" -o "${TMP_BIN}" 2>/dev/null
+if ! clang -O2 -framework IOKit "${TMP_BIN}.c" -o "${TMP_BIN}"; then
+    echo "Error: clang failed. Install the Xcode Command Line Tools: xcode-select --install" >&2
+    exit 1
+fi
 
 echo -e "${BOLD}${CYAN}==================================================================${RESET}"
-echo -e "${BOLD}${CYAN}   ASUS ROG Strix GL503GE - Hardware Thermal & Fan Monitor         ${RESET}"
+echo -e "${BOLD}${CYAN}   ASUS ROG Strix GL503GE - Hardware Thermal Monitor               ${RESET}"
 echo -e "${BOLD}${CYAN}==================================================================${RESET}\n"
 
-readings=$("${TMP_BIN}")
+readings=$("${TMP_BIN}") || { echo "Error: could not open AppleSMC (is VirtualSMC loaded?)" >&2; exit 1; }
 pkg_temp=$(echo "$readings" | awk -F'|' '{print $1}' | cut -d: -f2)
+if (( $(echo "$pkg_temp <= 0" | bc -l) )); then
+    echo "Error: TC0P (CPU package) sensor unreadable; is SMCProcessor.kext loaded?" >&2
+    exit 1
+fi
 
 color="${GREEN}"
 status="OPTIMAL / COOL"

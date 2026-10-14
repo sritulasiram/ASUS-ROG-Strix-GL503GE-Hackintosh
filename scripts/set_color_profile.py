@@ -42,24 +42,6 @@ def get_display_uuid():
 def get_device_class():
     return cf.CFStringCreateWithCString(None, b"mntr", 0x08000100)
 
-def get_current_profile_info():
-    uuid = get_display_uuid()
-    mntr = get_device_class()
-    
-    current_info = {}
-    CALLBACK = CFUNCTYPE(c_bool, c_void_p, c_void_p)
-    
-    def cb(info_dict, user_info):
-        # We check if it is current
-        # Inspect via python
-        # Get values from dictionary
-        # Let CFShow or parse
-        return True
-
-    # Get device info directly
-    info = cs.ColorSyncDeviceCopyDeviceInfo(mntr, uuid)
-    return info
-
 def set_profile(profile_path=None):
     """
     If profile_path is None, reset to factory (EDID) profile.
@@ -101,7 +83,7 @@ def show_status():
 def main():
     parser = argparse.ArgumentParser(description="Manage display color profile on ASUS ROG Strix GL503GE")
     parser.add_argument("--status", action="store_true", help="Show current ColorSync profile information")
-    parser.add_argument("--native", action="store_true", help="Set to Native Factory EDID profile (Chi Mei N156HHE-GA1 94% NTSC)")
+    parser.add_argument("--native", action="store_true", help="Set to Native Factory EDID profile (Chi Mei N156HHE-GA1 94%% NTSC)")
     parser.add_argument("--srgb", action="store_true", help="Set to standard sRGB Profile")
     parser.add_argument("--p3", action="store_true", help="Set to Display P3 Profile")
     parser.add_argument("--custom", type=str, help="Set to a custom .icc profile file path")
@@ -124,7 +106,7 @@ def main():
             print("❌ Failed to set profile.")
         show_status()
     elif args.p3:
-        p3_path = "/System/Library/ColorSync/Profiles/DCI(P3) RGB.icc"
+        p3_path = "/System/Library/ColorSync/Profiles/Display P3.icc"
         print(f"Switching display profile to: Display P3 ({p3_path})...")
         if set_profile(p3_path):
             print("✅ Successfully set display profile to Display P3!")

@@ -1,6 +1,6 @@
 # ASUS ROG Strix GL503GE Hackintosh
 
-[![OpenCore](https://img.shields.io/badge/OpenCore-1.0.7-blue.svg?style=flat-square&logo=apple)](https://github.com/acidanthera/OpenCorePkg)
+[![OpenCore](https://img.shields.io/badge/OpenCore-1.0.8-blue.svg?style=flat-square&logo=apple)](https://github.com/acidanthera/OpenCorePkg)
 [![macOS Support](https://img.shields.io/badge/macOS-Sonoma%20%7C%20Sequoia%20%7C%20Tahoe-success.svg?style=flat-square&logo=apple)](https://www.apple.com/macos/)
 [![Model](https://img.shields.io/badge/ASUS-ROG%20Strix%20GL503GE-red.svg?style=flat-square&logo=asus)](https://rog.asus.com/)
 [![Theme](https://img.shields.io/badge/OpenCanopy-Blackosx%20BsxM1-9cf.svg?style=flat-square)](https://github.com/blackosx/OpenCanopy-Icons)
@@ -20,7 +20,7 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
 > ### ⚠️ Legal Disclaimer & Terms of Use
 > * **EULA Compliance:** Running macOS on non-Apple-branded hardware breaches Section 2B of Apple Inc.'s [macOS Software License Agreement (EULA)](https://www.apple.com/legal/sla/).
 > * **Educational & Research Purpose:** This repository is an open-source research project provided strictly for personal experimentation, technical research, and non-commercial educational purposes under Fair Use.
-> * **Zero Copyrighted Binaries:** This repository contains **no proprietary Apple code, copyrighted macOS operating system images, or Apple software distributions**. It distributes only open-source community bootloader components, SSDT hotpatches, and driver wrappers.
+> * **Third-Party Binaries:** This repository contains **no macOS installer or operating system images**. It distributes open-source community bootloader components (OpenCore, Acidanthera and other kexts under their own licenses, e.g. GPL/MPL/BSD), SSDT hotpatches, and driver wrappers. It also includes a few binaries extracted from macOS that are needed for Intel Wi-Fi on modern macOS (`IOSkywalkFamily.kext`, `IO80211FamilyLegacy.kext`, `AirPortBrcmNIC.kext`); these remain the property of Apple Inc. Remove them if you are not comfortable redistributing them.
 > * **Non-Affiliation:** This project is independent and is **not affiliated with, endorsed by, sponsored by, or supported by Apple Inc., ASUSTeK Computer Inc., Intel Corporation, NVIDIA Corporation, or any of their affiliates**.
 > * **Limitation of Liability & Assumption of Risk:** You assume all risks. The authors and contributors shall not be held liable or responsible for any hardware damage, data loss, system instability, voided warranties, or Apple ID / iCloud account penalties resulting from the implementation or use of these files.
 
@@ -102,15 +102,17 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 .
 ├── .github/
 │   └── workflows/              # Automated GitHub Actions build & release workflows
+├── audio/
+│   └── MacBook_Pro_Acoustic_Profile.json  # eqMac 10-band preset
 ├── docs/
 │   └── images/                 # Desktop screenshot and documentation assets
 ├── EFI/
 │   ├── BOOT/
 │   │   └── BOOTx64.efi         # OpenCore initial UEFI bootloader
 │   └── OC/
-│       ├── ACPI/               # 12 optimized DSDT/SSDT patches
+│       ├── ACPI/               # 13 optimized SSDT patches (+ SSDT-FAN.dsl source)
 │       ├── Drivers/            # UEFI drivers (AudioDxe, OpenCanopy, OpenRuntime, etc.)
-│       ├── Kexts/              # 27 kernel extensions for hardware enablement
+│       ├── Kexts/              # 29 kernel extensions for hardware enablement
 │       ├── Resources/          # Audio chimes, fonts, OpenCanopy themes & labels
 │       │   ├── Audio/          # Startup chime WAV files
 │       │   ├── Font/           # Boot picker typography
@@ -122,6 +124,7 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 │   ├── fix_sleep_pmset.sh      # Optimize macOS sleep/wake & power management settings
 │   ├── reset_bluetooth.sh      # Reset Bluetooth daemon, stale caches & controller state
 │   ├── rog_thermal_monitor.sh  # Live AppleSMC CPU die & per-core thermal telemetry monitor
+│   ├── setup_macbook_sound.sh  # Stage acoustic profile & audit ALC295 CoreAudio health
 │   ├── set_color_profile.py    # Display wide-gamut / sRGB / Display P3 profile switcher
 │   ├── setup_function_keys.sh  # Map function keys (F1-F12) to native macOS media keys
 │   └── setup_native_macbook_display.sh # Native MacBook Pro display settings & HiDPI scaling
@@ -134,7 +137,7 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 
 ## ⚙️ OpenCore Configuration
 
-* **OpenCore Version:** `1.0.7`
+* **OpenCore Version:** `1.0.8`
 * **Target SMBIOS:** `MacBookPro16,4`
 * **Boot Arguments:**
   ```text
@@ -151,7 +154,7 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 ### 🎨 Graphical Boot Picker (OpenCanopy)
 * **Mode:** `External`
 * **Theme:** `Blackosx\BsxM1` (Modern Apple-style dark icons)
-* **Attributes:** `144` (Enables high-resolution icons and direct label rendering)
+* **Attributes:** `144` (`0x90` = `USE_FLAVOUR_ICON` + `USE_POINTER_CONTROL`; flavour-based themed icons)
 
 ### 🔊 UEFI Boot Chime (AudioDxe)
 * **Driver:** `AudioDxe.efi`
@@ -178,19 +181,20 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 ### 📦 Kernel Extensions (Kexts)
 
 <details open>
-<summary><b>Full Kext List (27 kexts)</b></summary>
+<summary><b>Full Kext List (29 kexts)</b></summary>
 
 | Kext | Purpose |
 | :--- | :--- |
 | `Lilu.kext` | Core kext patcher & hooking engine (Essential) |
 | `VirtualSMC.kext` | Advanced Apple SMC chip emulator |
-| `CPUFriend.kext` | Coffee Lake CPU frequency tuning *(Disabled by default; enable if custom data provider supplied)* |
+| `CPUFriend.kext` | Coffee Lake CPU frequency / power-profile tuning |
+| `CPUFriendDataProvider.kext` | Power profile for CPUFriend: LFM 800 MHz, EPP `0x40` (balanced performance), PerfBias 5. Regenerate with [CPUFriendFriend](https://github.com/corpnewt/CPUFriendFriend) if you want a cooler/quieter profile (e.g. EPP `0x80`) |
 | `SMCProcessor.kext` | Real-time CPU temperature and core monitoring |
 | `SMCSuperIO.kext` | Fan speed and LPC hardware sensor telemetry *(Disabled on laptop; EC handles fans)* |
 | `SMCBatteryManager.kext` | ASUS laptop battery percentage and charging state |
 | `ECEnabler.kext` | Fixes multi-cell battery EC field reads for 1% granularity |
 | `WhateverGreen.kext` | Intel UHD 630 framebuffer patching and HDMI 2.0 enablement |
-| `AppleALC.kext` | Realtek ALC295 native audio patcher |
+| `AppleALC.kext` | Realtek ALC295 native audio patcher (v1.9.8) |
 | `BrightnessKeys.kext` | Maps ASUS keyboard brightness function keys |
 | `RealtekRTL8111.kext` | Realtek Gigabit Ethernet driver (v3.0.4, Tahoe-ready) |
 | `AirportItlwm.kext` | Intel Wi-Fi driver (Sonoma/Sequoia; Tahoe via OCLP-Mod root patch) |
@@ -207,8 +211,9 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 | `XHCI-unsupported.kext` | Intel 300-series XHCI USB controller injector |
 | `NVMeFix.kext` | NVMe power management, APST tables, and stability |
 | `Sinetek-rtsx.kext` | Realtek PCIe SD card reader driver |
-| `RestrictEvents.kext` | System event suppression & CPU branding patcher |
+| `RestrictEvents.kext` | System event suppression (`revpatch=sbvmm` enables OTA updates with SecureBootModel disabled) |
 | `ForgedInvariant.kext` | Fixes TSC invariant timing on Coffee Lake |
+| `NoTouchID.kext` | Stops the Touch ID lookup delay at login/password prompts (MacBookPro16,4 SMBIOS) |
 
 </details>
 
@@ -298,16 +303,17 @@ The repository includes automated helper scripts under `scripts/`:
   ./scripts/set_color_profile.py --native    # Native 94% NTSC wide gamut (Recommended)
   ./scripts/set_color_profile.py --p3        # Apple Display P3 gamut
   ./scripts/set_color_profile.py --srgb      # Standard sRGB gamut
+  ./scripts/set_color_profile.py --status    # Show current ColorSync profile
   ```
 * **MacBook Pro Sound Optimization:** Stages the calibrated acoustic DSP profile and audits ALC295 CoreAudio health:
   ```bash
   ./scripts/setup_macbook_sound.sh
   ```
-* **Bluetooth Daemon & Cache Reset:** Restarts the macOS Bluetooth subsystem and purges stale controller state:
+* **Bluetooth Daemon & Cache Reset:** Restarts the macOS Bluetooth subsystem and purges stale controller state (**unpairs all devices**; asks for confirmation, `--yes` skips it):
   ```bash
   sudo ./scripts/reset_bluetooth.sh
   ```
-* **Deploy EFI to Boot Drive:** Synchronizes updated EFI to your internal ESP (`/dev/disk0s1`) with an automatic Desktop safety backup:
+* **Deploy EFI to Boot Drive:** Synchronizes updated EFI to your internal ESP (default `disk0s1`; pass another, e.g. `sudo ./scripts/deploy_to_esp.sh disk1s1`) with an automatic Desktop safety backup. Requires your own `EFI/OC/config.personal.plist` (a copy of `config.plist` with real SMBIOS values; it is gitignored) and refuses to deploy placeholders:
   ```bash
   sudo ./scripts/deploy_to_esp.sh
   ```

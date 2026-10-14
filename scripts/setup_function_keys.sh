@@ -120,8 +120,7 @@ if cat << EOF > "$PLIST_FILE" 2>/dev/null
 </plist>
 EOF
 then
-    echo -e "  ${GREEN}[✓] LaunchAgent installed:${RESET} $PLIST_FILE"
-    echo -e "  ${GREEN}[✓] Persistence verified across reboots.${RESET}"
+    echo -e "  ${GREEN}[✓] LaunchAgent installed:${RESET} $PLIST_FILE (applies at every login)"
 else
     echo -e "  ${YELLOW}[!] Note: To ensure persistence across reboots, run this command in Terminal:${RESET}"
     echo -e "      ${BOLD}./scripts/setup_function_keys.sh${RESET}"

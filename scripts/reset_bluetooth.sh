@@ -24,11 +24,16 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+if [[ "${1:-}" != "--yes" ]]; then
+    read -r -p "This unpairs ALL Bluetooth devices. Continue? [y/N] " ans
+    [[ "$ans" =~ ^[Yy]$ ]] || { echo "Aborted."; exit 0; }
+fi
+
 echo -e "${BLUE}[1/4] Stopping Bluetooth daemon (bluetoothd)...${NC}"
 killall -9 bluetoothd 2>/dev/null || true
 sleep 1
 
-echo -e "${BLUE}[2/4] Removing stale Bluetooth preferences and caches...${NC}"
+echo -e "${YELLOW}[2/4] Removing Bluetooth preferences and caches (this UNPAIRS all devices)...${NC}"
 rm -f /Library/Preferences/com.apple.Bluetooth.plist 2>/dev/null || true
 rm -f /Users/*/Library/Preferences/ByHost/com.apple.Bluetooth.*.plist 2>/dev/null || true
 rm -f /var/root/Library/Preferences/com.apple.Bluetooth.plist 2>/dev/null || true

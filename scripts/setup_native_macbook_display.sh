@@ -63,9 +63,10 @@ function disable() {
     check_root
     echo -e "${YELLOW}Removing native display overrides...${NC}"
     
-    if [[ -d "${VENDOR_DIR}" ]]; then
-        rm -rf "${VENDOR_DIR}"
-        echo -e "${GREEN}✓ Removed ${VENDOR_DIR}${NC}"
+    if [[ -f "${OVERRIDE_FILE}" || -L "${OVERRIDE_FILE}.plist" ]]; then
+        rm -f "${OVERRIDE_FILE}" "${OVERRIDE_FILE}.plist"
+        rmdir "${VENDOR_DIR}" 2>/dev/null || true
+        echo -e "${GREEN}✓ Removed ${OVERRIDE_FILE}${NC}"
     fi
 
     if [[ -f "${ICONS_PLIST}" ]]; then
@@ -93,7 +94,7 @@ function enable() {
     mkdir -p "${VENDOR_DIR}"
 
     # 2. Write Display Override plist
-    echo -e "${BLUE}[1/4] Writing native Display Override plist...${NC}"
+    echo -e "${BLUE}[1/5] Writing native Display Override plist...${NC}"
     cat <<'EOF' > "${OVERRIDE_FILE}"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -133,7 +134,7 @@ EOF
     echo -e "${GREEN}✓ Created: ${OVERRIDE_FILE}${NC}"
 
     # 3. Configure MacBook Pro Display Icon in Icons.plist
-    echo -e "${BLUE}[2/4] Registering MacBook Pro hardware icon...${NC}"
+    echo -e "${BLUE}[2/5] Registering MacBook Pro hardware icon...${NC}"
     
     # Locate best available system MacBook Pro Retina icon
     MBP_ICON="/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources/com.apple.macbookpro-15-retina-display.icns"
@@ -172,10 +173,14 @@ EOF
     echo -e "${GREEN}✓ Mapped display icon to: ${MBP_ICON}${NC}"
 
     # 4. Set ColorSync profile to native wide-gamut / Display P3
-    echo -e "${BLUE}[3/4] Calibrating ColorSync profile...${NC}"
+    echo -e "${BLUE}[3/5] Calibrating ColorSync profile...${NC}"
     if [[ -f "${SCRIPT_DIR}/set_color_profile.py" ]]; then
-        python3 "${SCRIPT_DIR}/set_color_profile.py" --native || true
-        echo -e "${GREEN}✓ ColorSync calibrated to panel wide gamut (94% NTSC / D65)${NC}"
+        # ColorSync profiles are per-user: apply as the user who invoked sudo, not root
+        if sudo -u "${SUDO_USER:-root}" python3 "${SCRIPT_DIR}/set_color_profile.py" --native >/dev/null 2>&1; then
+            echo -e "${GREEN}✓ ColorSync reset to the panel's native wide-gamut EDID profile${NC}"
+        else
+            echo -e "${YELLOW}! Could not set ColorSync profile; run ./scripts/set_color_profile.py --native as your user${NC}"
+        fi
     fi
 
     # 5. Enable macOS HiDPI resolution engine

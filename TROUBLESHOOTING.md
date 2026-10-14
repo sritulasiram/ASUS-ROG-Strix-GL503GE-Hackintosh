@@ -25,7 +25,7 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
 
 ### Issue: Trackpad freezes for 2–3 minutes or cursor stops moving intermittently.
 * **Root Cause of 2–3 Min Freeze (Polling Mode):** Using the `-vi2c-force-polling` boot argument forces VoodooI2C to poll the Intel DesignWare I2C0 bus (`pci8086,a368`) continuously at 60–100Hz. During CPU frequency scaling, Intel C-state shifts, or rapid multitouch gestures, an I2C transaction desynchronizes and deadlocks the controller FIFO in an abort state (`TX_ABRT` / bus busy). Without hardware interrupts to service the FIFO, the cursor remains stuck until the hardware controller watchdog timer expires (~120–180s, exactly 2–3 minutes) and forcibly resets the I2C bus.
-* **Current Implementation:** The EFI runs `VoodooI2C.kext` + `VoodooI2CHID.kext` in **Native GPIO Interrupt Mode** via `VoodooGPIOCannonLakeH.kext` matching `INT3450` (`GPI0`), with `SSDT-GPI0.aml` and `SSDT-XOSI.aml`.
+* **Current Implementation:** The EFI runs `VoodooI2C.kext` + `VoodooI2CHID.kext` in **Native GPIO Interrupt Mode** via the bundled `VoodooGPIO.kext` plugin (Cannon Lake-H support) matching `INT3450` (`GPI0`), with `SSDT-GPI0.aml` and `SSDT-XOSI.aml`.
 * **Verification Command:**
   Run in Terminal to verify that the trackpad is operating with direct hardware interrupts:
   ```bash
@@ -71,7 +71,7 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
 
 #### 2. Recreating the MacBook Pro Sound Profile on ASUS GL503GE
 The repository includes a dedicated calibration suite:
-* **Preset Profile:** [`audio/MacBook_Pro_Acoustic_Profile.json`](file:///Users/sritulasiram/Documents/Projects/efi/audio/MacBook_Pro_Acoustic_Profile.json)
+* **Preset Profile:** [`audio/MacBook_Pro_Acoustic_Profile.json`](audio/MacBook_Pro_Acoustic_Profile.json)
 * **Setup Script:** Run the helper script to audit your codec and stage the profile:
   ```bash
   ./scripts/setup_macbook_sound.sh
@@ -161,7 +161,7 @@ Install the free, open-source CoreAudio engine **[eqMac](https://github.com/bitg
   2. `IntelBTPatcher.kext` (hooks IntelBluetoothFirmware memory descriptors and HCI buffers).
   3. `BlueToolFixup.kext` (interfaces `bluetoothd` with the initialized device).
   *If `BlueToolFixup` or `IntelBTPatcher` is loaded ahead of `IntelBluetoothFirmware`, the controller handshake desynchronizes at boot, causing Bluetooth to report `Address: NULL` and `State: Off`.*
-* **EFI Fix:** The kext order in `Kernel > Add` has been corrected in both `config.plist` and `config.personal.plist`. Deploy the updated EFI to your ESP:
+* **EFI Fix:** The kext order in `Kernel > Add` has been corrected in `config.plist` (and in your own `config.personal.plist`, if you keep one). Deploy the updated EFI to your ESP:
   ```bash
   sudo ./scripts/deploy_to_esp.sh
   ```
@@ -309,14 +309,16 @@ The physical function keys on the ASUS ROG Strix GL503GE can be mapped to native
 * **F2:** Previous Track
 * **F3:** Play / Pause
 * **F4:** Next Track
-* **F5:** Mission Control (Exposé)
-* **F6:** Launchpad (App Grid)
+* **F5:** Mission Control
+* **F6:** Turn Off Display / Lock Screen
 * **F7:** Screen Brightness Down
 * **F8:** Screen Brightness Up
 * **F9:** Spotlight Search
-* **F10:** Audio Mute
-* **F11:** Volume Down
-* **F12:** Volume Up
+* **F10:** Launchpad (App Grid)
+* **F11:** System Sleep
+* **F12:** Do Not Disturb / Focus
+
+(Default silk-screen layout. `./scripts/setup_function_keys.sh --macbook` instead maps F10 = Mute, F11 = Volume Down, F12 = Volume Up; `--reset` removes all mappings. `Fn + F5` is handled separately by the EC fan-boost hotkey.)
 
 **Quick Installation:**
 Run the included post-install script from your terminal:
