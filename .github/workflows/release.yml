@@ -2,8 +2,10 @@ name: Package and Release EFI
 
 on:
   push:
+    branches: [main]
     tags:
       - 'v*'
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -17,6 +19,16 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Validate config.plist
+        run: |
+          python3 -c "import plistlib; plistlib.load(open('EFI/OC/config.plist','rb'))"
+          VER=1.0.8
+          curl -sL -o oc.zip "https://github.com/acidanthera/OpenCorePkg/releases/download/${VER}/OpenCore-${VER}-RELEASE.zip"
+          unzip -q oc.zip -d oc
+          chmod +x oc/Utilities/ocvalidate/ocvalidate.linux
+          oc/Utilities/ocvalidate/ocvalidate.linux EFI/OC/config.plist
+          rm -rf oc oc.zip
 
       - name: Clean and Package EFI
         run: |

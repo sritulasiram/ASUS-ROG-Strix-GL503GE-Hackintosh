@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>DisplayProductID</key>
+	<integer>5620</integer>
+	<key>DisplayVendorID</key>
+	<integer>3502</integer>
+	<key>DisplayProductName</key>
+	<string>Built-in Retina Display</string>
+	<key>IODisplayEDID</key>
+	<data>AP///////wANrvQVAAAAAAYbAQSlIhN4Aomlrk9ErCYQUFQAAAABAQEBAQEBAQEBAQEBAQEBWW+AoHA4PkAwIGoAWMEQAAAYAAAA/gBOMTU2SEhFLUdBMQogAAAA/gBDTU4KICAgICAgICAgAAAA/gBOMTU2SEhFLUdBMQogABo=</data>
+	<key>target-default-ppmm</key>
+	<real>10.0699301</real>
+	<key>scale-resolutions</key>
+	<array>
+		<!-- HiDPI (Retina 2x backing buffer) Modes -->
+		<data>AAAPAAAACHAAAAABACAAAA==</data> <!-- 1920x1080 HiDPI (Rendered at 3840x2160) -->
+		<data>AAANIAAAB2IAAAABACAAAA==</data> <!-- 1680x945  HiDPI (Rendered at 3360x1890) -->
+		<data>AAAMgAAABwgAAAABACAAAA==</data> <!-- 1600x900  HiDPI (Rendered at 3200x1800) -->
+		<data>AAALIAAABkQAAAABACAAAA==</data> <!-- 1424x802  HiDPI (Rendered at 2848x1604 - Apple Sleep Fix) -->
+		<data>AAALQAAABlQAAAABACAAAA==</data> <!-- 1440x810  HiDPI (Rendered at 2880x1620) -->
+		<data>AAAKAAAABaAAAAABACAAAA==</data> <!-- 1280x720  HiDPI (Rendered at 2560x1440) -->
+		<data>AAAIAAAABIAAAAABACAAAA==</data> <!-- 1024x576  HiDPI (Rendered at 2048x1152) -->
+		<data>AAAHgAAABDgAAAABACAAAA==</data> <!-- 960x540   HiDPI (Rendered at 1920x1080) -->
+
+		<!-- Standard 1x Native Modes -->
+		<data>AAAHgAAABDgAAAA=</data>         <!-- 1920x1080 1x Standard -->
+		<data>AAAGQAAAA4QAAAA=</data>         <!-- 1600x900  1x Standard -->
+		<data>AAAFQAAAAvQAAAA=</data>         <!-- 1344x756  1x Standard -->
+		<data>AAAFAAAAAtAAAAA=</data>         <!-- 1280x720  1x Standard -->
+	</array>
+</dict>
+</plist>
