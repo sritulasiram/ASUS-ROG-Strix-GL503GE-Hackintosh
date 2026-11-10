@@ -12,8 +12,8 @@ A clear and concise description of what the problem is.
 
 **System Information:**
 - **Laptop Model:** ASUS ROG Strix GL503GE
-- **macOS Version:** (e.g. Sonoma 14.5, Sequoia 15.0)
-- **OpenCore Version:** (e.g. 1.0.7)
+- **macOS Version:** (e.g. Tahoe 26.7.1; note Wi-Fi only works on Tahoe with the bundled kexts)
+- **OpenCore Version:** (e.g. 1.0.8)
 - **BIOS Version:** (e.g. 319)
 
 **Hardware Specs (if different from default):**
@@ -30,6 +30,9 @@ Steps to reproduce the behavior:
 
 **Expected Behavior**
 A clear description of what you expected to happen.
+
+**Checks run** (optional, paste output)
+- `./scripts/check-apple.sh`, `./scripts/check-audio.sh`, `./scripts/monitor-thermals.sh`
 
 **Logs & Screenshots**
 If applicable, attach OpenCore debug logs or screenshots/kernel panic photos.

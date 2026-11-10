@@ -6,7 +6,7 @@
 [![Theme](https://img.shields.io/badge/OpenCanopy-Blackosx%20BsxM1-9cf.svg?style=flat-square)](https://github.com/blackosx/OpenCanopy-Icons)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-An optimized, production-ready OpenCore EFI configuration for running macOS (**Sonoma 14.x**, **Sequoia 15.x**, and **Tahoe 26.x**) on the **ASUS ROG Strix GL503GE** gaming laptop.
+An optimized, production-ready OpenCore EFI configuration for running macOS (**Sonoma 14.x**, **Sequoia 15.x**, and **Tahoe 26.x**) on the **ASUS ROG Strix GL503GE** gaming laptop. Tahoe 26.x is the tested target (26.7.1); on Sonoma and Sequoia this EFI loads no Wi-Fi kext, so Wi-Fi does not work there without swapping in a matching `AirportItlwm`.
 
 Built following the [Dortania OpenCore Install Guide](https://dortania.github.io/OpenCore-Install-Guide/), assisted by [OpenCore Simplify](https://github.com/lzhoang2801/OC-Simplify), and powered by [Acidanthera](https://github.com/acidanthera) kexts and drivers.
 
@@ -27,7 +27,7 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
 ---
 
 ### 📌 Quick Navigation
-[💻 Hardware Status](#-hardware-specifications--status) • [📂 EFI Structure](#-repository-structure) • [⚙️ OpenCore Config](#-opencore-configuration) • [🔧 BIOS Settings](#-bios-configuration) • [🚀 Installation](#-installation--setup-guide) • [🌐 Apple Services](#-apple-ecosystem--continuity) • [🔌 USB Port Map](#-physical-usb-port-mapping) • [📖 Troubleshooting](#-troubleshooting--optimizations) • [🤝 Credits](#-credits--acknowledgements) • [⚖️ Legal & Trademarks](#️-trademark-notices--legal)
+[💻 Hardware Status](#-hardware-specifications--status) • [📂 EFI Structure](#-repository-structure) • [⚙️ OpenCore Config](#-opencore-configuration) • [🔧 BIOS Settings](#-bios-configuration) • [🚀 Installation](#-installation--setup-guide) • [🌐 Apple Services](#-apple-ecosystem--continuity) • [🔌 USB Port Map](#-physical-usb-port-mapping) • [📖 Troubleshooting](#-troubleshooting--optimizations) • [🤝 Contributing](#-contributing) • [🤝 Credits](#-credits--acknowledgements) • [⚖️ Legal & Trademarks](#️-trademark-notices--legal)
 
 ---
 
@@ -51,7 +51,7 @@ Built following the [Dortania OpenCore Install Guide](https://dortania.github.io
 | **Webcam** | Built-in USB HD Camera | ✅ Working | Native macOS UVC support |
 | **Card Reader** | Realtek RTS5229 PCIe SD Card Reader | 🔄 Supported | Handled by `Sinetek-rtsx.kext` (macOS Tahoe compatible; insert before boot/wake) |
 | **Battery Status** | ASUS Smart Battery | ✅ Working | Real-time percentage & AC health via `SMCBatteryManager.kext` |
-| **Fans & Cooling** | Dual 12V Blower Fans (CPU & GPU) | ✅ Working | ACPI hardware mode switching via `SSDT-FAN.aml` (`Fn + F5` toggles Normal / Overboost / Silent); autonomous hardware EC thermal control; AppleSMC die telemetry via `SMCProcessor.kext` |
+| **Fans & Cooling** | Dual 12V Blower Fans (CPU & GPU) | ✅ Working | Automatic EC fan curve; `Fn + F5` profile switching is not active (see [docs/FAN-CONTROL.md](docs/FAN-CONTROL.md)); autonomous hardware EC thermal control; AppleSMC die telemetry via `SMCProcessor.kext` |
 | **Display** | 15.6" Full HD 120Hz IPS (94% NTSC, ~100% sRGB) Display | ✅ Working | Native brightness slider, 120Hz refresh rate, MacBook Pro Retina HiDPI scaling, native 'Built-in Retina Display' profile, sRGB colour profile and dark "look" via `./scripts/display.sh` |
 | **HDMI Output** | HDMI 2.0 Port | ✅ Working | 4K video & audio output |
 | **Sleep / Wake** | S3 Sleep State | ✅ Working | Sleep, lid close, and wake operational (`SSDT-GPRW`, `setup-sleep.sh`) |
@@ -103,16 +103,19 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 ```text
 .
 ├── .github/
-│   └── workflows/              # Automated GitHub Actions build & release workflows
+│   ├── ISSUE_TEMPLATE/         # Bug and hardware-compatibility report templates
+│   ├── workflows/              # GitHub Actions: release packaging + script linting
+│   └── pull_request_template.md
 ├── docs/
-│   └── images/                 # Desktop screenshot and documentation assets
+│   ├── images/                 # Desktop screenshot and documentation assets
+│   └── FAN-CONTROL.md          # Fan control findings: why Fn+F5 does not work, options
 ├── EFI/
 │   ├── BOOT/
 │   │   └── BOOTx64.efi         # OpenCore initial UEFI bootloader
 │   └── OC/
-│       ├── ACPI/               # 12 optimized SSDT patches (+ SSDT-FAN.dsl source)
+│       ├── ACPI/               # 11 optimized SSDT patches
 │       ├── Drivers/            # UEFI drivers (AudioDxe, OpenCanopy, OpenRuntime, etc.)
-│       ├── Kexts/              # 29 kernel extensions for hardware enablement
+│       ├── Kexts/              # 28 kernel extensions for hardware enablement
 │       ├── Resources/          # Audio chimes, fonts, OpenCanopy themes & labels
 │       │   ├── Audio/          # Startup chime WAV files
 │       │   ├── Font/           # Boot picker typography
@@ -133,6 +136,7 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 │   ├── setup-fnkeys.sh         # Map F1-F12 to media keys (--macbook, --status, --reset)
 │   └── setup-sleep.sh          # Sleep/wake pmset tuning with --revert and --status
 ├── CHANGELOG.md                # Release history
+├── CONTRIBUTING.md             # How to report issues, test and submit changes
 ├── LICENSE                     # MIT License
 ├── README.md                   # This documentation
 └── TROUBLESHOOTING.md          # In-depth post-install and troubleshooting guide
@@ -146,7 +150,7 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 * **Target SMBIOS:** `MacBookPro16,4`
 * **Boot Arguments:**
   ```text
-  debug=0x100 alcid=14 keepsyms=1 -amfipassbeta -igfxblr darkwake=0 -btlfxallowanyaddr -btlfxboardid
+  alcid=14 keepsyms=1 -amfipassbeta -igfxblr darkwake=0 -btlfxallowanyaddr -btlfxboardid
   ```
 * **Boot Argument Breakdown:**
   * `alcid=14` — Selects AppleALC layout-id 14 for the Realtek ALC295/294 codec.
@@ -154,10 +158,10 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
   * `-amfipassbeta` — Allows AMFIPass to work on modern beta/new macOS versions.
   * `darkwake=0` — Disables maintenance darkwake cycles for rock-solid sleep stability.
   * `-btlfxallowanyaddr -btlfxboardid` — Bluetooth firmware upload compatibility flags for BlueToolFixup.
-  * `debug=0x100 keepsyms=1` — `debug=0x100` disables the macOS watchdog; `keepsyms=1` keeps kernel symbols in panic logs.
+  * `keepsyms=1` — Keeps kernel symbols in panic logs. (Verbose logging is off; add `-v` temporarily when debugging. The watchdog is disabled through `Misc > Debug > DisableWatchDog`.)
 
 ### 🛡️ Security & Quirks
-* **SIP (`csr-active-config`):** `030A0000` (partially relaxed; required for OCLP-Mod root patching).
+* **SIP (`csr-active-config`):** `030A0000` (`0x0A03`: partially relaxed; required for OCLP-Mod root patching). It enables untrusted/unapproved kexts, unrestricted filesystem access and unauthenticated root, so kext signing and filesystem protections are off. This is a security trade-off; the EFI is not meant for a machine holding sensitive data you can't afford to expose.
 * **SecureBootModel:** `Disabled` • **Vault:** `Optional` • **ScanPolicy:** `0` (all drives shown) • **DmgLoading:** `Signed`.
 * **Kernel quirks:** `DisableIoMapper` (VT-d can stay enabled in BIOS), `DisableLinkeditJettison`, `DisableRtcChecksum`, `AppleXcpmCfgLock`, `PanicNoKextDump`, `PowerTimeoutKernelPanic`.
 * **Booter quirks:** `RebuildAppleMemoryMap`, `SyncRuntimePermissions`, `SetupVirtualMap`, `AvoidRuntimeDefrag`, `EnableSafeModeSlide`, `ProvideCustomSlide`.
@@ -172,7 +176,7 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 * **Driver:** `AudioDxe.efi`
 * **Audio Device:** `PciRoot(0x0)/Pci(0x1f,0x3)`
 * **Audio Codec:** `0`
-* **Setup Delay:** `500 ms`
+* **Setup Delay:** `1000 ms`
 * **Audio File:** `OCEFIAudio_VoiceOver_Boot.wav` (Native Mac startup chime)
 
 ### 🧩 ACPI Patches (SSDTs)
@@ -187,12 +191,12 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 * `SSDT-SBUS.aml` — Fixes System Management Bus (SMBus) recognition.
 * `SSDT-USBX.aml` — Injects proper USB power properties (USB sleep/wake current).
 * `SSDT-XOSI.aml` — Emulates Windows 10/11 environment for ASUS ACPI tables.
-* `SSDT-FAN.aml` — ASUS Fan Boost hotpatch (cycles Normal / Overboost / Silent on `Fn + F5`).
+* `SSDT-FAN.aml` — removed. It was an ASUS Fan Boost hotpatch that `Fn + F5` never triggered on this model; see [docs/FAN-CONTROL.md](docs/FAN-CONTROL.md).
 
 ### 📦 Kernel Extensions (Kexts)
 
 <details open>
-<summary><b>Full Kext List (29 kexts)</b></summary>
+<summary><b>Full Kext List (28 kexts, 1 disabled)</b></summary>
 
 | Kext | Purpose |
 | :--- | :--- |
@@ -219,7 +223,6 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 | `VoodooI2CHID.kext` | Precision multi-touch trackpad gestures |
 | `USBToolBox.kext` | Custom USB port management engine |
 | `UTBDefault.kext` | ASUS GL503GE USB port mapping definitions |
-| `XHCI-unsupported.kext` | Intel 300-series XHCI USB controller injector |
 | `NVMeFix.kext` | NVMe power management, APST tables, and stability |
 | `Sinetek-rtsx.kext` | Realtek PCIe SD card reader driver |
 | `RestrictEvents.kext` | System event suppression (`revpatch=sbvmm` enables OTA updates with SecureBootModel disabled) |
@@ -267,12 +270,13 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
 
 1. Download and run [GenSMBIOS](https://github.com/corpnewt/GenSMBIOS).
 2. Select option `1` to download MacSerial, then option `3` to generate SMBIOS for `MacBookPro16,4`.
-3. Open `EFI/OC/config.plist` with [ProperTree](https://github.com/corpnewt/ProperTree) or [OCAuxiliaryTools](https://github.com/ic005k/OCAuxiliaryTools).
+3. Copy `EFI/OC/config.plist` to `EFI/OC/config.personal.plist` (gitignored, so your serials never get committed) and open the copy with [ProperTree](https://github.com/corpnewt/ProperTree) or [OCAuxiliaryTools](https://github.com/ic005k/OCAuxiliaryTools). `scripts/deploy-efi.sh` later deploys this file as `config.plist` and refuses placeholders.
 4. Navigate to `PlatformInfo > Generic` and fill in:
    * `SystemSerialNumber`
    * `MLB` (Board Serial Number)
    * `SystemUUID`
    * `ROM` (Use your laptop Ethernet MAC address without colons, e.g. `112233445566`)
+5. For the **USB installer** (step 2 below), copy your personalised file over the USB's `EFI/OC/config.plist`. Do not boot the repository's placeholder config.
 
 ### 2. Prepare USB Installer
 1. Create a bootable macOS USB installer using standard Apple tools:
@@ -283,16 +287,28 @@ All physical and internal USB ports are custom-mapped within macOS's 15-port per
    # For macOS Tahoe (26.x):
    sudo /Applications/Install\ macOS\ Tahoe.app/Contents/Resources/createinstallmedia --volume /Volumes/MyUSB
    ```
+   For macOS Sonoma (14.x) the command is the same with `Install\ macOS\ Sonoma.app`. Sonoma and Sequoia boot and run, but Wi-Fi needs a matching `AirportItlwm` build (see step 3).
 2. Mount the EFI partition of your USB drive (using `MountEFI` or `diskutil mount diskXs1`).
 3. Copy the entire `EFI` folder from this repository to the root of the EFI partition.
 4. Reboot, enter BIOS (hold `F2` at startup), verify BIOS settings above, and boot from USB (`F8` or `Esc`).
+5. Install macOS to the internal drive using the normal installer (erase the target volume as APFS in Disk Utility first).
+
+### 2b. Move the EFI to the internal drive
+The installed system cannot boot without an EFI on the internal drive. After the first boot into macOS, write your personalised EFI to the internal ESP:
+```bash
+diskutil list internal                       # find the internal EFI partition, e.g. disk0s1
+./scripts/deploy-efi.sh disk0s1 --dry-run    # runs all checks, writes nothing
+sudo ./scripts/deploy-efi.sh disk0s1         # backs up the old EFI to ~/Desktop first
+```
 
 ### 3. Post-Installation: Intel Wi-Fi & macOS 26 Audio via OCLP-Mod
-On macOS Sonoma (14), Sequoia (15), and Tahoe (26):
+This section applies to **macOS Tahoe (26)**, the tested target. On Sonoma and Sequoia the bundled `AirportItlwm` does not load (it is restricted to Darwin 25), so Wi-Fi needs a Sonoma/Sequoia build of `AirportItlwm` that you add yourself; audio there works natively without the AppleHDA patch.
+
+On macOS Tahoe (26):
 1. Complete the macOS setup assistant.
 2. Download **[OCLP-Mod (OpenCore-Legacy-Patcher Mod)](https://github.com/lzhoang2801/OpenCore-Legacy-Patcher/releases)**.
 3. Launch OCLP-Mod and click **Post-Install Root Patch**.
-4. Install the **Networking: Modern Wireless** patch set (for Intel Wi-Fi on Sonoma/Sequoia/Tahoe) and **Modern Audio / AppleHDA** patch set (required on macOS 26 Tahoe because Apple dropped native `AppleHDA.kext`).
+4. Install the **Networking: Modern Wireless** patch set (Intel Wi-Fi) and **Modern Audio / AppleHDA** patch set (required on macOS 26 Tahoe because Apple dropped native `AppleHDA.kext`).
 5. Reboot your laptop. Native Wi-Fi management, Control Center networking, and full Realtek ALC295 audio (speakers, headphones, mic) will now be active.
 > **Note on OS Updates:** Whenever you update macOS (e.g. updating to 26.7), Apple replaces the root snapshot. Simply launch OCLP-Mod and re-run **Post-Install Root Patch** to restore both patches.
 
@@ -336,10 +352,10 @@ The repository includes automated helper scripts under `scripts/`:
   ```
 * **Bluetooth Daemon & Cache Reset:** Restarts the macOS Bluetooth subsystem and purges stale controller state (**unpairs all devices**; asks for confirmation, `--yes` skips it):
   ```bash
-  sudo ./scripts/reset-bluetooth.sh     # backs up prefs to ~/Bluetooth_Backup_*, then resets
+  sudo ./scripts/reset-bluetooth.sh     # backs up prefs to ~/Bluetooth_Backup_*, then resets (also --dry-run)
   ./scripts/reset-bluetooth.sh --check  # read-only: is the controller address valid?
   ```
-* **Deploy EFI to Boot Drive:** Writes the repo EFI to an ESP with checks and a Desktop backup (the newest 5 are kept; the previous EFI is restored automatically if the copy fails). Requires your own `EFI/OC/config.personal.plist` (a copy of `config.plist` with real SMBIOS values; it is gitignored) and refuses placeholders. If your Mac has more than one internal ESP, you must name it (`diskutil list internal` shows them); `--dry-run` runs all checks and writes nothing:
+* **Deploy EFI to Boot Drive:** Writes the repo EFI to an ESP with checks and a Desktop backup (the newest 5 are kept; the previous EFI is restored automatically if the copy fails). Requires your own `EFI/OC/config.personal.plist` (a copy of `config.plist` with real SMBIOS values; it is gitignored) and refuses placeholders. If your Mac has more than one internal ESP, you must name it (`diskutil list internal` shows them); `--dry-run` runs all checks and writes nothing, `--yes` skips the confirmation prompt, and `--keep N` changes how many backups are kept (default 5):
   ```bash
   ./scripts/deploy-efi.sh disk0s1 --dry-run
   sudo ./scripts/deploy-efi.sh disk0s1
@@ -353,13 +369,10 @@ The repository includes automated helper scripts under `scripts/`:
 ### 5. Fan Control & Hardware Thermal Architecture
 On ASUS ROG laptops, the dual 12V blowers are wired directly to the **ITE IT8987 Embedded Controller (EC)** rather than an Apple SMC chip.
 
-* **Hardware Fan Boost Hotkey (`Fn + F5`):**
-  Handled by pure ACPI via [`SSDT-FAN.aml`](EFI/OC/ACPI/SSDT-FAN.aml). Intercepts the EC `_QAE` event and dispatches the native ASUS WMI Device Set command (`\_SB.ATKD.WMNB(0x53564544, 0x00110018, FMOD)`) to cycle hardware thermal profiles:
-  * **Normal / Balanced (`0x00`):** Factory automatic EC thermal curve based on CPU die temperature.
-  * **Overboost Turbo (`0x01`):** Forces dual blowers to ~5,000+ RPM maximum cooling.
-  * **Silent Quiet (`0x02`):** Acoustic-prioritized low-RPM profile for quiet workflows.
+* **Fan profile switching (not active):**
+  The ASUS WMI profile call (`\_SB.ATKD.WMNB(0x53564544, 0x00110018, FMOD)`) is not wired up. `Fn + F5` arrives over USB as HID, not as the EC `_QAE` event, so the hotkey does nothing, and the `SSDT-FAN` hook and its `_QAE → XQAE` rename were removed. Test results and options are in [docs/FAN-CONTROL.md](docs/FAN-CONTROL.md).
 * **Autonomous Hardware Cooling:**
-  The hardware EC continuously reads CPU package temperatures via Intel PECI and dynamically ramps blower speeds under load (reducing temperatures by 10 °C+ in seconds). Combined with `SSDT-Disable_GPU_PEG0.aml` cutting 75W of NVIDIA heat, the system runs cooler and quieter than on Windows.
+  The hardware EC continuously reads CPU package temperatures via Intel PECI and ramps blower speeds with load. With the NVIDIA GPU powered down by `SSDT-Disable_GPU_PEG0.aml`, the dGPU's heat load is removed entirely. Check temperatures with `./scripts/monitor-thermals.sh`; no Windows comparison has been measured.
 * **Why macOS Menu Bar Apps Report 0 RPM:**
   Standard macOS apps (Stats, Macs Fan Control) query Apple-proprietary SMC keys (`FNum = 0` on PC hardware). `AsusSMC.kext` is unsupported and causes kernel probe panics on macOS Tahoe (Darwin 25/26). In macOS, cooling and throttling are governed strictly by **CPU Package & Die Temperature (`TC0P` / `TC0D`)**, which is 100% natively readable via `SMCProcessor.kext`.
 
@@ -389,6 +402,11 @@ For detailed fixes, see [**TROUBLESHOOTING.md**](TROUBLESHOOTING.md):
 10. SD card reader
 11. Fans & thermal monitoring
 12. Recovering from a bad boot / NVRAM reset
+
+---
+
+## 🤝 Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to report bugs, share hardware test results and submit changes.
 
 ---
 

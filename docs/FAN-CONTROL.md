@@ -2,6 +2,8 @@
 
 Status as of **2026-10-26** (macOS 26.7.1 Tahoe, OpenCore 1.0.8).
 
+> **Status: resolved.** The cleanup described in §3 has been done: `SSDT-FAN.aml`, its `_QAE → XQAE` rename and the docs that claimed the hotkey works were all removed. §3 is kept as the record of why; §5 lists what is still open.
+>
 > **TL;DR:** `Fn + F5` does **not** change the fan mode on macOS. `SSDT-FAN.aml` never runs, because the key is delivered over USB, not by the embedded controller (EC). The fans still work normally on the EC's automatic curve. Changing the fan mode needs either a fixed SSDT setting (no kext, no hotkey) or a small kext called from the ROG Gaming Center app.
 
 ---
@@ -33,7 +35,7 @@ Related IDs used by the Linux `asus-wmi` driver, which are worth trying later:
 
 `SSDT-FAN.aml` replaces the EC query method `_QAE` (with the `_QAE → XQAE` rename in `config.plist`) and calls `WMNB` from there. It assumes `Fn + F5` raises EC query `0xAE`.
 
-A probe recorded the ASUS keyboard's HID input reports and the kernel's ACPI interrupt counters (`ACPI Statistics` → `SciCount` / `GpeCount` on `AppleACPIPlatformExpert`) while the keys were pressed:
+A probe (run before the SSDT was removed) recorded the ASUS keyboard's HID input reports and the kernel's ACPI interrupt counters (`ACPI Statistics` → `SciCount` / `GpeCount` on `AppleACPIPlatformExpert`) while the keys were pressed:
 
 | Key | HID report (ITE 8910) | ACPI SCI / GPE during the press |
 | :--- | :--- | :--- |
@@ -48,25 +50,25 @@ The probe's source is in [Appendix A](#appendix-a-fn-key-probe). Re-run it after
 
 ---
 
-## 3. Audit of the current implementation
+## 3. Audit of the removed implementation (historical)
 
-### `SSDT-FAN.aml` / `config.plist`
+### `SSDT-FAN.aml` / `config.plist` (removed)
 1. **It never runs** (section 2).
 2. **The rename may hijack an unrelated EC event.** Nothing shows that query `0xAE` means "fan key" on this BIOS. If it's something else, that event now silently changes the fan mode and loses its original handler. The rename's search pattern is only the 4 bytes `_QAE` (Count 1), which is fragile.
 3. **BIOS support for `0x00110018` is unverified.** macOS 26 no longer exposes the ACPI tables in IORegistry, and no DSDT dump has been made yet.
 4. **The `FMOD` state drifts.** It resets to 0 every boot, is never read back from the firmware, and gives no on-screen feedback. The first press always goes to Overboost.
 5. **Minor:** the method creates named fields (`CreateDWordField`), so it should be `Serialized`. The README call signature `WMNB(0x53564544, 0x00110018, FMOD)` doesn't match the code (instance `0` + 8-byte buffer).
 
-### Docs that currently claim it works
+### Docs that claimed it worked (all corrected)
 - `README.md`: hardware table (Fans & Cooling) and "Fan Control & Hardware Thermal Architecture"
 - `TROUBLESHOOTING.md` §11
 - `CHANGELOG.md` (2026-10-10 entry)
 - `scripts/monitor-thermals.sh` footer line
 
-### `scripts/monitor-thermals.sh`
+### `scripts/monitor-thermals.sh` (footer line removed)
 It works: package plus 6 core temperatures via `SMCProcessor`, clean piped output, and unknown flags rejected.
-- Its footer says `Fn + F5` cycles the fan modes, which isn't true.
-- `--watch 0` redraws in a tight loop; the interval should be at least 1.
+- Its footer used to say `Fn + F5` cycles the fan modes; that line is gone.
+- `--watch 0` redraws in a tight loop; use an interval of at least 1.
 
 ---
 
@@ -101,7 +103,7 @@ Also the cheapest **support test**: set Overboost at boot and listen for the fan
 1. Get a DSDT dump: Linux live USB → `sudo acpidump -b` → `iasl -d dsdt.dat`. Check what `_QAE` really is, whether `WMNB` → `DEVS` handles `0x00110018` / `0x00120075`, and find the AC adapter query method.
 2. Run the Option A boot-time Overboost test from a USB EFI.
 3. If it works, choose A (AC-based automatic modes) or B (hotkey + app).
-4. Either way, remove the `_QAE → XQAE` rename and the current `SSDT-FAN.aml`, and fix the docs listed in section 3.
+4. ~~Remove the `_QAE → XQAE` rename and `SSDT-FAN.aml`, and fix the docs.~~ Done; see the CHANGELOG.
 
 ---
 

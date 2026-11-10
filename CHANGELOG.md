@@ -4,7 +4,27 @@ All notable changes to this EFI. Format follows [Keep a Changelog](https://keepa
 
 > After updating, re-apply your own SMBIOS values (`PlatformInfo > Generic`) and keep a backup of your working EFI.
 
-## [Unreleased] — 2026-10-14
+## [Unreleased]
+_Changes since 2026-10-14; not yet tagged as a release._
+### Added
+- `CONTRIBUTING.md`; README install flow now covers `config.personal.plist`, Sonoma installer media and moving the EFI to the internal drive.
+
+- `docs/FAN-CONTROL.md`: findings on fan control. `Fn + F5` arrives over USB as HID (`5A 99`) and never triggers `SSDT-FAN.aml`, so the hotkey does nothing on this model. Lists the options.
+
+### Fixed
+- Docs audit: README boot-args (no `debug=0x100`), audio setup delay (1000 ms) and kext count (28) now match `config.plist`; Wi-Fi is documented as Tahoe-only everywhere; unsubstantiated fan/thermal claims removed; `docs/FAN-CONTROL.md` marked resolved; issue template example bumped to OpenCore 1.0.8.
+
+### Changed
+- `config.plist`: removed the `SSDT-FAN.aml` ACPI entry and the `_QAE → XQAE` rename. Fn + F5 never reaches the EC, so the rename could only hijack an unrelated EC event. `SSDT-FAN.aml` / `.dsl` are deleted (recoverable from git history).
+- `config.plist`: removed `debug=0x100` from boot-args and set `Misc > Debug > Target` to 0. Verbose logging is off; `keepsyms=1` stays for readable panics.
+- `scripts/monitor-thermals.sh`: no longer prints the Fn + F5 fan-profile line.
+- Removed `XHCI-unsupported.kext` and its `config.plist` entry. The 300-series controller (`8086:A36D`) binds natively to `AppleIntelCNLUSBXHCI`, so the kext did nothing. README row removed.
+- README: states that Tahoe 26.x is the tested target and that Wi-Fi only works there (`AirportItlwm` is Darwin 25-only); documents what SIP value `0x0A03` turns off.
+- `config.plist`: dropped the AMD-only `agdpmod=vit9696` property from the iGPU again (it had been re-added; it has no effect on the UHD 630).
+- `config.plist`: `UEFI > Audio` now `AudioOutMask` -1, `MaximumGain` 0, `MinimumAudibleGain` -30, `SetupDelay` 1000 (was 1, -15, -55, 500). `config.personal.plist` was synced to match.
+- README and TROUBLESHOOTING no longer describe `Fn + F5` as working; both link `docs/FAN-CONTROL.md`. The repository tree lists `docs/`.
+
+## [2026-10-14]
 ### Added
 - `scripts/check-apple.sh`: read-only Apple feature check (SMBIOS, iCloud/iMessage prerequisites, Bluetooth, Wi-Fi, AWDL, AirPlay Receiver, Continuity Camera, Metal, `--deep` for IDS log scan and hardware decode test).
 - `scripts/display.sh`: single display manager (`setup`, `revert`, `look`, `profile`, `status`) replacing `setup_native_macbook_display.sh`; `look` applies dark mode, reduced transparency and sRGB to hide IPS backlight glow. `lib/colorsync.py` remains as its helper.
@@ -30,7 +50,7 @@ All notable changes to this EFI. Format follows [Keep a Changelog](https://keepa
 
 ## 2026-10-10 — Fan control
 ### Added
-- `SSDT-FAN.aml` (+ `.dsl` source): ACPI fan boost on `Fn + F5` (Normal / Overboost / Silent).
+- `SSDT-FAN.aml` (+ `.dsl` source): ACPI fan boost on `Fn + F5` (Normal / Overboost / Silent). *Later found non-functional and removed; see `docs/FAN-CONTROL.md` and [Unreleased].*
 - `monitor-thermals.sh` thermal telemetry script.
 
 ## 2026-10-01 — Polish

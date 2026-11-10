@@ -12,7 +12,7 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
 ## 1. 🔑 SMBIOS & Apple Services (iMessage / FaceTime / iCloud)
 
 ### Issue: "An error occurred during authentication" or Apple ID sign-in failure.
-* **Cause:** The repository uses placeholder values (`CHANGEME`) under `PlatformInfo > Generic` in `config.plist`.
+* **Cause:** The repository uses placeholder values (`CHANGEME`) under `PlatformInfo > Generic` in `config.plist`. Put your real values in your own `EFI/OC/config.personal.plist` (a gitignored copy) and deploy it with `scripts/deploy-efi.sh`.
 * **Fix:**
   1. Open [GenSMBIOS](https://github.com/corpnewt/GenSMBIOS).
   2. Generate values for model **`MacBookPro16,4`**.
@@ -21,7 +21,7 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
      ```bash
      ifconfig en0 | awk '/ether/{print $2}' | tr -d ':'
      ```
-  5. Paste `SystemSerialNumber`, `MLB`, and `SystemUUID` into `PlatformInfo > Generic`.
+  5. Paste `SystemSerialNumber`, `MLB`, and `SystemUUID` into `PlatformInfo > Generic` of `config.personal.plist`.
   6. Paste the 12-character hex Ethernet MAC address into `ROM` (as Data/hex). **Do not use a random MAC or Wi-Fi MAC**, as Apple ID tokens bind to `en0`.
 
 ---
@@ -72,7 +72,7 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
   2. **Root Snapshot Overwrite:** Applying any macOS update (such as 26.7) replaces the root volume with Apple's newly sealed APFS update snapshot (`com.apple.os.update-...`), wiping all previous root patches.
   3. **DeviceProperties Data Type:** `layout-id` must be injected as 4-byte OSData (`<data>DgAAAA==</data>`), not integer, so `OSDynamicCast(OSData, ...)` in `AppleALC` succeeds.
 * **Fix Procedure After macOS 26 Update:**
-  1. Deploy the updated EFI with `layout-id` & `alc-layout-id` data type fixes:
+  1. If you have not already, deploy the current EFI (it injects `layout-id` & `alc-layout-id` as data):
      ```bash
      sudo ./scripts/deploy-efi.sh diskXsY
      ```
@@ -88,7 +88,8 @@ This guide addresses common issues, optimizations, and post-installation tweaks 
 
 ## 4. 🌐 Wi-Fi & Bluetooth (Intel AX210 / 9560)
 
-### Issue: Wi-Fi toggle is greyed out on macOS Sonoma (14) or Sequoia (15).
+### Issue: Wi-Fi toggle is greyed out or Wi-Fi is missing.
+* **Scope:** the bundled `AirportItlwm.kext` is restricted to **macOS Tahoe (Darwin 25)** in `config.plist` (`MinKernel 25.0.0`). On Sonoma or Sequoia no Wi-Fi kext loads, so Wi-Fi is absent until you add an `AirportItlwm` build for that macOS version (and adjust its `MinKernel`/`MaxKernel`). The steps below apply to Tahoe.
 * **Cause:** macOS 14+ removed the legacy `IO80211Family` Wi-Fi stack. Official OpenCore Legacy Patcher targets Broadcom cards, whereas **Intel Wi-Fi** cards require **[OCLP-Mod (OpenCore-Legacy-Patcher Mod)](https://github.com/lzhoang2801/OpenCore-Legacy-Patcher/releases)**.
 * **Fix (OCLP-Mod Root Patching):**
   1. Ensure the following kexts are enabled in `config.plist`:
@@ -214,7 +215,7 @@ Wake from Normal Sleep [CDNVA] : due to PWRB/UserActivity Assertion
   * `force-online` (`<data>AQAAAA==</data>`) and `force-online-framebuffers` (`<data>AAAAAAAAAAE=</data>`) ensure the panel is immediately recognized as online.
   * `igfxfw=2` (GuC firmware loading) is omitted: on mobile Coffee Lake and newer macOS releases, GuC firmware loading causes an asynchronous handshake race condition during the display server transition that leaves the screen dark.
 * **Backlight Registers Fix (Instant Backlight Initialization):** The Coffee Lake backlight registers are initialized immediately upon driver attach using `enable-backlight-registers-fix` (`<data>AQAAAA==</data>`) and `-igfxblr` in `boot-args`. This completely eliminates the temporary dark screen delay before the login window appears (previously caused by `-igfxbls` / Backlight Smoother holding brightness at 0% during early boot).
-* **Keyboard Hotkeys:** `BrightnessKeys.kext` handles `Fn + F7` / `Fn + F8` natively.
+* **Brightness keys:** `BrightnessKeys.kext` is loaded for ACPI brightness key events. If F7/F8 do nothing, `./scripts/setup-fnkeys.sh` maps them to brightness down/up (see section 9).
 * **Native MacBook Pro Display Settings & Retina HiDPI Scaling (Zero Background Apps):**
   By default, macOS treats the internal 1080p panel as a non-Retina 1x display, which causes thin/aliased text rendering since font smoothing was removed in macOS Mojave. You can natively configure macOS System Settings to identify the internal screen as a **"Built-in Retina Display"**, assign the authentic **MacBook Pro laptop clamshell icon**, and enable **2× supersampled Retina HiDPI vector scaling** (`1920x1080 HiDPI`, `1680x945 HiDPI`, `1600x900 HiDPI`, `1424x802 HiDPI`, `1280x720 HiDPI`) without installing any third-party background apps:
   ```bash
@@ -286,7 +287,7 @@ The physical function keys on the ASUS ROG Strix GL503GE can be mapped to native
 * **F11:** System Sleep
 * **F12:** Do Not Disturb / Focus
 
-(Default silk-screen layout. `./scripts/setup-fnkeys.sh --macbook` instead maps F10 = Mute, F11 = Volume Down, F12 = Volume Up; `--status` shows what is active; `--reset` removes only the F1–F12 mappings. `Fn + F5` is handled separately by the EC fan-boost hotkey.)
+(Default silk-screen layout. `./scripts/setup-fnkeys.sh --macbook` instead maps F10 = Mute, F11 = Volume Down, F12 = Volume Up; `--status` shows what is active; `--reset` removes only the F1–F12 mappings. `Fn + F5` is not handled by any mapping here; it is the fan-mode key, which does not work on this model; see section 11.)
 
 **Quick Installation:**
 Run the included post-install script from your terminal:
@@ -321,9 +322,9 @@ This installs a lightweight LaunchAgent at `~/Library/LaunchAgents/com.local.Key
 
 ## 11. 🌀 Fans & Thermal Monitoring
 
-> **Known issue (2026-10-26):** `Fn + F5` currently does **not** change the fan mode; the key arrives over USB and never triggers `SSDT-FAN.aml`. See [docs/FAN-CONTROL.md](docs/FAN-CONTROL.md) for the test results and options.
+> **Known issue (2026-10-26):** `Fn + F5` does not change the fan mode; the key arrives over USB and never reaches the EC. `SSDT-FAN.aml` and its `_QAE` rename were removed from the EFI. See [docs/FAN-CONTROL.md](docs/FAN-CONTROL.md) for the test results and options.
 
-* **Fan mode hotkey:** `Fn + F5` cycles Normal → Overboost → Silent through `SSDT-FAN.aml` (ASUS WMI call from the EC `_QAE` event). If it does nothing, confirm `SSDT-FAN.aml` is enabled under `ACPI > Add`.
+* **Fan mode hotkey:** `Fn + F5` does not change the fan mode on this model (see the known issue above). Fan profile switching is not active; see [docs/FAN-CONTROL.md](docs/FAN-CONTROL.md).
 * **0 RPM in menu-bar apps is expected:** the fans are run by the ITE EC, not the SMC, so Stats / Macs Fan Control cannot read them. `SMCSuperIO.kext` is intentionally disabled.
 * **Check temperatures:** `./scripts/monitor-thermals.sh` (package die + 6 cores via `SMCProcessor`).
 * **Too hot / loud?** Use Silent mode for light work, and consider regenerating the `CPUFriendDataProvider` profile with a higher EPP (e.g. `0x80`) via [CPUFriendFriend](https://github.com/corpnewt/CPUFriendFriend).

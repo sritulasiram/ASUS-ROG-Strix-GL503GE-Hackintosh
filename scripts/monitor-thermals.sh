@@ -141,7 +141,6 @@ render() {
         echo "    - Core ${name#C}: ${val} °C"
     done
     echo -e "${BOLD}${CYAN}------------------------------------------------------------------${RESET}"
-    echo "  Fan profile: Fn + F5 cycles Normal / Overboost / Silent (SSDT-FAN.aml)."
     echo "  Thresholds: warn >= ${WARN_C} °C, high >= ${CRIT_C} °C."
 }
 
